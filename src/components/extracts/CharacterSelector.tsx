@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useQuery } from '@apollo/client';
 import { GET_ANIME_CHARACTERS } from '../../lib/graphql/queries';
 import { CloseCircle } from 'iconsax-react';
@@ -25,7 +25,7 @@ const CharacterSelector: React.FC<CharacterSelectorProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [allCharacters, setAllCharacters] = useState<Character[]>([]);
 
-  const { data, loading } = useQuery(GET_ANIME_CHARACTERS, {
+  const { loading } = useQuery(GET_ANIME_CHARACTERS, {
     variables: { animeId, source: apiSource },
     skip: !animeId,
     onCompleted: (data) => {
