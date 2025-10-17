@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
-import { useMutation } from '@apollo/client';
-import { useNavigate } from 'react-router';
-import { CREATE_EXTRACT } from '../../../lib/graphql/mutations';
+import { useQuery, useMutation } from '@apollo/client';
+import { useNavigate, useParams } from 'react-router';
+import { GET_EXTRACT } from '../../../lib/graphql/queries';
+import { UPDATE_EXTRACT } from '../../../lib/graphql/mutations';
 import AnimeSearch from '../../../components/extracts/AnimeSearch';
 import CharacterSelector from '../../../components/extracts/CharacterSelector';
 import ThemeSelector from '../../../components/extracts/ThemeSelector';
 import TimelineSelector from '../../../components/extracts/TimelineSelector';
 import EpisodeSelector from '../../../components/extracts/EpisodeSelector';
 import ConfirmationModal from '../../../components/modals/ConfirmationModal';
-import { RefreshCircle, TickCircle } from 'iconsax-react';
+import { TickCircle, ArrowLeft } from 'iconsax-react';
 import { useToast } from '../../../context/toast-context';
 
 import Button from '../../../components/actions/button';
@@ -28,19 +29,42 @@ interface SelectedCharacter {
   image?: string;
 }
 
-const NewExtract: React.FC = () => {
+const EditExtract: React.FC = () => {
   const navigate = useNavigate();
+  const { id } = useParams<{ id: string }>();
   const toast = useToast();
+
   const [text, setText] = useState('');
   const [selectedAnime, setSelectedAnime] = useState<SelectedAnime | null>(null);
   const [selectedCharacters, setSelectedCharacters] = useState<SelectedCharacter[]>([]);
   const [timing, setTiming] = useState({ start: '00:00', end: '00:00' });
   const [episode, setEpisode] = useState<number | undefined>();
-  const [episodeDuration, setEpisodeDuration] = useState<number>(24); // Default 24 min
+  const [episodeDuration, setEpisodeDuration] = useState<number>(24);
   const [selectedThemeId, setSelectedThemeId] = useState<string | undefined>();
   const [apiSource, setApiSource] = useState<'MAL' | 'JIKAN'>('JIKAN');
   const [showValidationModal, setShowValidationModal] = useState(false);
   const [validationMessage, setValidationMessage] = useState('');
+
+  const { data: extractData, loading: loadingExtract } = useQuery(GET_EXTRACT, {
+    variables: { id },
+    skip: !id,
+    onCompleted: (data) => {
+      if (data?.extract) {
+        const extract = data.extract;
+        setText(extract.text);
+        setSelectedAnime({
+          id: extract.animeId,
+          title: extract.animeTitle,
+          image: extract.animeImage,
+        });
+        setSelectedCharacters(extract.characters);
+        setTiming(extract.timing);
+        setEpisode(extract.episode);
+        setSelectedThemeId(extract.theme?.id);
+        setApiSource(extract.apiSource || 'JIKAN');
+      }
+    },
+  });
 
   const handleEpisodeSelect = (episodeNumber: number, duration?: number) => {
     setEpisode(episodeNumber);
@@ -49,24 +73,14 @@ const NewExtract: React.FC = () => {
     }
   };
 
-  const handleReset = () => {
-    setText('');
-    setSelectedAnime(null);
-    setSelectedCharacters([]);
-    setTiming({ start: '00:00', end: '00:00' });
-    setEpisode(undefined);
-    setEpisodeDuration(24);
-    setSelectedThemeId(undefined);
-  };
-
-  const [createExtract, { loading }] = useMutation(CREATE_EXTRACT, {
+  const [updateExtract, { loading }] = useMutation(UPDATE_EXTRACT, {
     onCompleted: () => {
-      toast.success('Extract created', 'Your extract has been created successfully');
+      toast.success('Extract updated', 'Your extract has been updated successfully');
       navigate('/dashboard/extracts');
     },
     onError: (error) => {
-      console.error('Error creating extract:', error);
-      toast.error('Failed to create extract', error.message || 'Please try again');
+      console.error('Error updating extract:', error);
+      toast.error('Failed to update extract', error.message || 'Please try again');
     },
   });
 
@@ -79,8 +93,9 @@ const NewExtract: React.FC = () => {
       return;
     }
 
-    createExtract({
+    updateExtract({
       variables: {
+        id,
         input: {
           text,
           characters: selectedCharacters.map((char) => ({
@@ -103,23 +118,46 @@ const NewExtract: React.FC = () => {
     });
   };
 
+  if (loadingExtract) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
+  if (!extractData?.extract) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Extract not found</h2>
+          <Button
+            onClick={() => navigate('/dashboard/extracts')}
+            className="px-6 py-3 bg-indigo-600 text-white hover:bg-indigo-700 rounded-lg font-medium transition-all"
+          >
+            Back to Extracts
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8 flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Create New Extract</h1>
-            <p className="text-gray-600">Add a new anime extract to your collection</p>
+            <button
+              onClick={() => navigate('/dashboard/extracts')}
+              className="flex items-center gap-2 text-indigo-600 hover:text-indigo-700 mb-2 transition-colors"
+            >
+              <ArrowLeft size={20} variant="Outline" color="#4F46E5" />
+              <span className="text-sm font-medium">Back to Extracts</span>
+            </button>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Edit Extract</h1>
+            <p className="text-gray-600">Update your anime extract</p>
           </div>
-          <button
-            type="button"
-            onClick={handleReset}
-            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-          >
-            <RefreshCircle size={20} variant="Bulk" color="#374151" />
-            Reset All
-          </button>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -129,7 +167,7 @@ const NewExtract: React.FC = () => {
               {/* API Source Selection */}
               <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
                 <h2 className="text-sm font-semibold mb-4 text-gray-700 uppercase tracking-wide">
-                  1. Choose API Source
+                  1. API Source
                 </h2>
                 <div className="flex gap-3">
                   <label className="flex-1 flex items-center justify-center gap-3 p-4 cursor-pointer border-2 rounded-lg transition-all hover:bg-gray-50 has-[:checked]:border-indigo-600 has-[:checked]:bg-indigo-50">
@@ -298,7 +336,7 @@ const NewExtract: React.FC = () => {
           <div className="flex justify-between items-center pt-6 border-t border-gray-200 bg-white p-6 rounded-xl shadow-sm">
             <Button
               type="button"
-              onClick={() => navigate('/dashboard')}
+              onClick={() => navigate('/dashboard/extracts')}
               className="px-6 py-3 border-2 border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg font-medium transition-all"
             >
               Cancel
@@ -311,12 +349,12 @@ const NewExtract: React.FC = () => {
               {loading ? (
                 <>
                   <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  Creating...
+                  Updating...
                 </>
               ) : (
                 <>
                   <TickCircle size={20} variant="Bulk" color="#FFFFFF" />
-                  Create Extract
+                  Update Extract
                 </>
               )}
             </Button>
@@ -336,4 +374,4 @@ const NewExtract: React.FC = () => {
   );
 };
 
-export default NewExtract;
+export default EditExtract;

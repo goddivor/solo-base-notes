@@ -6,6 +6,8 @@ import { Add, Edit2, Trash, TickCircle, CloseCircle } from 'iconsax-react';
 import Button from '../../../components/actions/button';
 import { Input } from '@/components/forms/Input';
 import { Textarea } from '@/components/forms/Textarea';
+import ActionConfirmationModal from '../../../components/modals/ActionConfirmationModal';
+import { useToast } from '../../../context/toast-context';
 
 interface Theme {
   id: string;
@@ -22,6 +24,7 @@ const PRESET_COLORS = [
 ];
 
 const ThemesPage: React.FC = () => {
+  const toast = useToast();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTheme, setEditingTheme] = useState<Theme | null>(null);
   const [formData, setFormData] = useState({
@@ -29,6 +32,8 @@ const ThemesPage: React.FC = () => {
     description: '',
     color: '#6366F1',
   });
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [themeToDelete, setThemeToDelete] = useState<{ id: string; name: string } | null>(null);
 
   const { data, loading, refetch } = useQuery(GET_THEMES);
 
@@ -36,10 +41,11 @@ const ThemesPage: React.FC = () => {
     onCompleted: () => {
       refetch();
       closeModal();
+      toast.success('Theme created', 'The theme has been created successfully');
     },
     onError: (error) => {
       console.error('Error creating theme:', error);
-      alert('Failed to create theme. Please try again.');
+      toast.error('Failed to create theme', error.message || 'Please try again');
     },
   });
 
@@ -47,20 +53,24 @@ const ThemesPage: React.FC = () => {
     onCompleted: () => {
       refetch();
       closeModal();
+      toast.success('Theme updated', 'The theme has been updated successfully');
     },
     onError: (error) => {
       console.error('Error updating theme:', error);
-      alert('Failed to update theme. Please try again.');
+      toast.error('Failed to update theme', error.message || 'Please try again');
     },
   });
 
-  const [deleteTheme] = useMutation(DELETE_THEME, {
+  const [deleteTheme, { loading: deleting }] = useMutation(DELETE_THEME, {
     onCompleted: () => {
       refetch();
+      setShowDeleteModal(false);
+      setThemeToDelete(null);
+      toast.success('Theme deleted', 'The theme has been deleted successfully');
     },
     onError: (error) => {
       console.error('Error deleting theme:', error);
-      alert('Failed to delete theme. Please try again.');
+      toast.error('Failed to delete theme', error.message || 'Please try again');
     },
   });
 
@@ -97,7 +107,7 @@ const ThemesPage: React.FC = () => {
     e.preventDefault();
 
     if (!formData.name.trim()) {
-      alert('Please enter a theme name');
+      toast.error('Theme name required', 'Please enter a theme name');
       return;
     }
 
@@ -114,9 +124,14 @@ const ThemesPage: React.FC = () => {
     }
   };
 
-  const handleDelete = (id: string, name: string) => {
-    if (window.confirm(`Are you sure you want to delete the theme "${name}"?`)) {
-      deleteTheme({ variables: { id } });
+  const handleDeleteClick = (id: string, name: string) => {
+    setThemeToDelete({ id, name });
+    setShowDeleteModal(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (themeToDelete) {
+      deleteTheme({ variables: { id: themeToDelete.id } });
     }
   };
 
@@ -135,7 +150,7 @@ const ThemesPage: React.FC = () => {
             onClick={() => openModal()}
             className="flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white hover:bg-indigo-700 rounded-lg font-medium transition-all shadow-lg hover:shadow-xl"
           >
-            <Add size={20} variant="Bulk" />
+            <Add size={20} variant="Bulk" color="#FFFFFF" />
             New Theme
           </Button>
         </div>
@@ -150,9 +165,9 @@ const ThemesPage: React.FC = () => {
         {/* Empty State */}
         {!loading && themes.length === 0 && (
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
-            <div className="max-w-md mx-auto">
-              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Add size={32} className="text-gray-400" />
+            <div className="max-w-md mx-auto flex flex-col items-center">
+              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                <Add size={32} color="#9CA3AF" />
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">No themes yet</h3>
               <p className="text-gray-600 mb-6">
@@ -195,14 +210,14 @@ const ThemesPage: React.FC = () => {
                       onClick={() => openModal(theme)}
                       className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors"
                     >
-                      <Edit2 size={16} variant="Bulk" />
+                      <Edit2 size={16} variant="Bulk" color="#4F46E5" />
                       Edit
                     </button>
                     <button
-                      onClick={() => handleDelete(theme.id, theme.name)}
+                      onClick={() => handleDeleteClick(theme.id, theme.name)}
                       className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
                     >
-                      <Trash size={16} variant="Bulk" />
+                      <Trash size={16} variant="Bulk" color="#DC2626" />
                       Delete
                     </button>
                   </div>
@@ -215,7 +230,7 @@ const ThemesPage: React.FC = () => {
 
       {/* Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/20 bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
             <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
               <h2 className="text-xl font-bold text-gray-900">
@@ -225,7 +240,7 @@ const ThemesPage: React.FC = () => {
                 onClick={closeModal}
                 className="text-gray-400 hover:text-gray-600 transition-colors"
               >
-                <CloseCircle size={24} variant="Bulk" />
+                <CloseCircle size={24} variant="Bulk" color="#9CA3AF" />
               </button>
             </div>
 
@@ -326,7 +341,7 @@ const ThemesPage: React.FC = () => {
                     </>
                   ) : (
                     <>
-                      <TickCircle size={20} variant="Bulk" />
+                      <TickCircle size={20} variant="Bulk" color="#FFFFFF" />
                       {editingTheme ? 'Update Theme' : 'Create Theme'}
                     </>
                   )}
@@ -336,6 +351,22 @@ const ThemesPage: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Delete Confirmation Modal */}
+      <ActionConfirmationModal
+        isOpen={showDeleteModal}
+        onClose={() => {
+          setShowDeleteModal(false);
+          setThemeToDelete(null);
+        }}
+        onConfirm={handleConfirmDelete}
+        title="Delete Theme"
+        message={`Are you sure you want to delete the theme "${themeToDelete?.name}"? This action cannot be undone.`}
+        type="danger"
+        confirmText="Delete"
+        cancelText="Cancel"
+        loading={deleting}
+      />
     </div>
   );
 };
