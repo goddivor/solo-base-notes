@@ -9,6 +9,7 @@ const ME_QUERY = gql`
       email
       name
       avatar
+      youtubeChannelUrl
     }
   }
 `;

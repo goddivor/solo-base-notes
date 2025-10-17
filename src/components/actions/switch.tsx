@@ -8,10 +8,6 @@ export default function Switch() {
         onClick={(e) => e.stopPropagation()}
       >
         <input
-          //   id={`job-alert-${alert.id}`}
-          //   type="checkbox"
-          //   checked={checkedAlerts[idx] || false}
-          //   onChange={() => handleCheckboxToggle(idx)}
           className="sr-only peer"
         />
         <div
