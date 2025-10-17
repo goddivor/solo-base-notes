@@ -90,3 +90,98 @@ export const DELETE_THEME = gql`
     deleteTheme(id: $id)
   }
 `;
+
+export const UPDATE_SETTINGS = gql`
+  mutation UpdateSettings($youtubeChannelUrl: String) {
+    updateSettings(youtubeChannelUrl: $youtubeChannelUrl) {
+      id
+      youtubeChannelUrl
+      updatedAt
+      updatedBy
+    }
+  }
+`;
+
+export const UPDATE_YOUTUBE_CHANNEL_URL = gql`
+  mutation UpdateYouTubeChannelUrl($url: String!) {
+    updateYouTubeChannelUrl(url: $url) {
+      id
+      youtubeChannelUrl
+    }
+  }
+`;
+
+export const CREATE_VIDEO = gql`
+  mutation CreateVideo($input: CreateVideoInput!) {
+    createVideo(input: $input) {
+      id
+      title
+      description
+      tags
+      segments {
+        extractId
+        text
+        order
+      }
+      musicTracks {
+        id
+        name
+        artists {
+          id
+          name
+        }
+        album {
+          id
+          name
+          image
+        }
+        duration
+        previewUrl
+        spotifyUrl
+        uri
+      }
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+export const UPDATE_VIDEO = gql`
+  mutation UpdateVideo($id: ID!, $input: UpdateVideoInput!) {
+    updateVideo(id: $id, input: $input) {
+      id
+      title
+      description
+      tags
+      segments {
+        extractId
+        text
+        order
+      }
+      musicTracks {
+        id
+        name
+        artists {
+          id
+          name
+        }
+        album {
+          id
+          name
+          image
+        }
+        duration
+        previewUrl
+        spotifyUrl
+        uri
+      }
+      updatedAt
+    }
+  }
+`;
+
+export const DELETE_VIDEO = gql`
+  mutation DeleteVideo($id: ID!) {
+    deleteVideo(id: $id)
+  }
+`;
