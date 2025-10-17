@@ -21,25 +21,34 @@ const DashboardLayout: React.FC = () => {
     {
       path: '/dashboard',
       label: 'Accueil',
+      end: true,
     },
     {
       path: '/dashboard/extracts/new',
       label: 'New Extract',
+      end: true,
     },
     {
       path: '/dashboard/extracts',
       label: 'All Extracts',
+      end: true,
     },
     {
       path: '/dashboard/themes',
       label: 'Themes',
+      end: true,
+    },
+    {
+      path: '/dashboard/videos',
+      label: 'Videos',
+      end: true,
     },
   ];
 
   return (
     <div className="flex flex-col h-screen bg-gray-50">
       {/* Header */}
-      <header className="shadow-lg" style={{ backgroundColor: '#272530' }}>
+      <header className="shadow-lg z-10" style={{ backgroundColor: '#272530' }}>
         <div className="px-6 py-4">
           <div className="flex items-center justify-between">
             {/* Logo */}
@@ -54,7 +63,7 @@ const DashboardLayout: React.FC = () => {
                 <NavLink
                   key={item.path}
                   to={item.path}
-                  end={item.path === '/dashboard'}
+                  end={item.end}
                   className={({ isActive }) =>
                     `px-4 py-2 rounded-lg transition-colors ${
                       isActive
