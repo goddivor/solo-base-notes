@@ -43,6 +43,11 @@ const DashboardLayout: React.FC = () => {
       label: 'Videos',
       end: true,
     },
+    {
+      path: '/dashboard/published-videos',
+      label: 'Published Videos',
+      end: true,
+    },
   ];
 
   return (

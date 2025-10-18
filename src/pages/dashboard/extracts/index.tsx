@@ -35,6 +35,7 @@ interface Extract {
   episode?: number;
   theme?: Theme;
   createdAt: string;
+  isUsedInVideo: boolean;
 }
 
 const ExtractsPage: React.FC = () => {
@@ -78,7 +79,13 @@ const ExtractsPage: React.FC = () => {
     }
   };
 
-  const toggleExtractSelection = (extractId: string) => {
+  const toggleExtractSelection = (extractId: string, isUsedInVideo: boolean) => {
+    // Prevent selection if extract is already used in a video
+    if (isUsedInVideo) {
+      toast.error('Extract already in use', 'This extract is already used in a video and cannot be selected');
+      return;
+    }
+
     setSelectedExtracts((prev) =>
       prev.includes(extractId)
         ? prev.filter((id) => id !== extractId)
@@ -255,12 +262,17 @@ const ExtractsPage: React.FC = () => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {filteredExtracts.map((extract) => {
                 const isSelected = selectedExtracts.includes(extract.id);
+                const isUsed = extract.isUsedInVideo;
+                const isDisabled = isSelectionMode && isUsed;
+
                 return (
                 <div
                   key={extract.id}
-                  onClick={() => isSelectionMode && toggleExtractSelection(extract.id)}
+                  onClick={() => isSelectionMode && !isUsed && toggleExtractSelection(extract.id, isUsed)}
                   className={`bg-white rounded-xl shadow-sm border-2 overflow-hidden transition-all ${
-                    isSelectionMode ? 'cursor-pointer' : ''
+                    isSelectionMode && !isUsed ? 'cursor-pointer' : ''
+                  } ${
+                    isDisabled ? 'opacity-50 cursor-not-allowed' : ''
                   } ${
                     isSelected
                       ? 'border-purple-600 ring-2 ring-purple-200 shadow-lg'
@@ -278,21 +290,30 @@ const ExtractsPage: React.FC = () => {
                   <div className="p-6">
                     {/* Selection Indicator */}
                     {isSelectionMode && (
-                      <div className="mb-4 flex items-center gap-2">
-                        <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
-                          isSelected
-                            ? 'bg-purple-600 border-purple-600'
-                            : 'border-gray-300'
-                        }`}>
-                          {isSelected && (
-                            <TickCircle size={16} variant="Bold" color="#FFFFFF" />
-                          )}
+                      <div className="mb-4 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
+                            isSelected
+                              ? 'bg-purple-600 border-purple-600'
+                              : isUsed
+                              ? 'border-gray-400 bg-gray-200'
+                              : 'border-gray-300'
+                          }`}>
+                            {isSelected && (
+                              <TickCircle size={16} variant="Bold" color="#FFFFFF" />
+                            )}
+                          </div>
+                          <span className={`text-sm font-medium ${
+                            isSelected ? 'text-purple-600' : isUsed ? 'text-gray-500' : 'text-gray-500'
+                          }`}>
+                            {isSelected ? 'Selected' : isUsed ? 'Already used' : 'Click to select'}
+                          </span>
                         </div>
-                        <span className={`text-sm font-medium ${
-                          isSelected ? 'text-purple-600' : 'text-gray-500'
-                        }`}>
-                          {isSelected ? 'Selected' : 'Click to select'}
-                        </span>
+                        {isUsed && (
+                          <span className="px-2 py-1 bg-orange-100 text-orange-700 rounded text-xs font-medium">
+                            In video
+                          </span>
+                        )}
                       </div>
                     )}
 

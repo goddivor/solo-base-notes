@@ -14,6 +14,7 @@ interface Theme {
   name: string;
   description?: string;
   color: string;
+  extractCount: number;
 }
 
 const PRESET_COLORS = [
@@ -201,10 +202,18 @@ const ThemesPage: React.FC = () => {
                 </div>
                 <div className="p-4">
                   {theme.description && (
-                    <p className="text-sm text-gray-600 mb-4 line-clamp-2">
+                    <p className="text-sm text-gray-600 mb-3 line-clamp-2">
                       {theme.description}
                     </p>
                   )}
+                  <div className="mb-4 px-3 py-2 bg-gray-50 rounded-lg border border-gray-200">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-medium text-gray-600">Extraits</span>
+                      <span className="text-sm font-bold text-gray-900">
+                        {theme.extractCount}
+                      </span>
+                    </div>
+                  </div>
                   <div className="flex gap-2">
                     <button
                       onClick={() => openModal(theme)}

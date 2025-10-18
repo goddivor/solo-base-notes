@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router';
 import { useLazyQuery, useMutation, useQuery } from '@apollo/client';
-import { DocumentText1, Tag, Book, VideoCircle, Edit2, TickCircle, People, Play, Eye } from 'iconsax-react';
+import { DocumentText1, Tag, Book, VideoCircle, Edit2, TickCircle, People, Play, Eye, Link2 } from 'iconsax-react';
 import { useAuth } from '../../hooks/useAuth';
 import { GET_YOUTUBE_CHANNEL_INFO, GET_YOUTUBE_CHANNEL_VIDEOS, GET_SETTINGS } from '../../lib/graphql/queries';
 import { UPDATE_SETTINGS } from '../../lib/graphql/mutations';
@@ -266,7 +266,7 @@ const DashboardHome: React.FC = () => {
       </div>
 
       {/* Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <Link
           to="/dashboard/extracts/new"
           className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow border border-gray-200 group"
@@ -303,6 +303,19 @@ const DashboardHome: React.FC = () => {
           <h3 className="text-xl font-semibold mb-2 text-gray-900">View Library</h3>
           <p className="text-gray-600 text-sm">
             Browse all your saved extracts
+          </p>
+        </Link>
+
+        <Link
+          to="/dashboard/published-videos"
+          className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow border border-gray-200 group"
+        >
+          <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mb-4 group-hover:bg-orange-200 transition-colors">
+            <Link2 size={24} variant="Bulk" color="#EA580C" />
+          </div>
+          <h3 className="text-xl font-semibold mb-2 text-gray-900">Link YouTube Videos</h3>
+          <p className="text-gray-600 text-sm">
+            Link published YouTube videos to extracts
           </p>
         </Link>
       </div>

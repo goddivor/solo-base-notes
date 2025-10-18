@@ -54,6 +54,7 @@ export const GET_THEMES = gql`
       name
       description
       color
+      extractCount
     }
   }
 `;
@@ -83,6 +84,7 @@ export const GET_EXTRACTS = gql`
         color
       }
       createdAt
+      isUsedInVideo
     }
   }
 `;
@@ -205,6 +207,28 @@ export const GET_VIDEOS = gql`
         extractId
         text
         order
+        extract {
+          id
+          animeId
+          animeTitle
+          animeImage
+          episode
+          season
+          timing {
+            start
+            end
+          }
+          characters {
+            malId
+            name
+            image
+          }
+          theme {
+            id
+            name
+            color
+          }
+        }
       }
       musicTracks {
         id
@@ -223,6 +247,8 @@ export const GET_VIDEOS = gql`
         spotifyUrl
         uri
       }
+      isPublished
+      youtubeVideoId
       createdAt
       updatedAt
     }
@@ -240,6 +266,28 @@ export const GET_VIDEO = gql`
         extractId
         text
         order
+        extract {
+          id
+          animeId
+          animeTitle
+          animeImage
+          episode
+          season
+          timing {
+            start
+            end
+          }
+          characters {
+            malId
+            name
+            image
+          }
+          theme {
+            id
+            name
+            color
+          }
+        }
       }
       musicTracks {
         id
@@ -257,6 +305,60 @@ export const GET_VIDEO = gql`
         previewUrl
         spotifyUrl
         uri
+      }
+      isPublished
+      youtubeVideoId
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+export const GET_PUBLISHED_VIDEOS = gql`
+  query GetPublishedVideos($limit: Int, $offset: Int) {
+    publishedVideos(limit: $limit, offset: $offset) {
+      id
+      youtubeVideoId
+      title
+      description
+      thumbnail
+      publishedAt
+      duration
+      viewCount
+      likeCount
+      commentCount
+      extractIds
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+export const GET_PUBLISHED_VIDEO_BY_YOUTUBE_ID = gql`
+  query GetPublishedVideoByYoutubeId($youtubeVideoId: String!) {
+    publishedVideoByYoutubeId(youtubeVideoId: $youtubeVideoId) {
+      id
+      youtubeVideoId
+      title
+      description
+      thumbnail
+      publishedAt
+      duration
+      viewCount
+      likeCount
+      commentCount
+      extractIds
+      extracts {
+        id
+        text
+        animeTitle
+        animeImage
+        episode
+        theme {
+          id
+          name
+          color
+        }
       }
       createdAt
       updatedAt

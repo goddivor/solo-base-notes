@@ -12,6 +12,7 @@ import ThemesPage from "./dashboard/themes";
 import VideosPage from "./dashboard/videos";
 import VideoDetailsPage from "./dashboard/videos/details";
 import VideoBuilder from "./dashboard/video/builder";
+import PublishedVideosPage from "./dashboard/published-videos";
 import ProtectedRoute from "../components/ProtectedRoute";
 
 const router = createBrowserRouter([
@@ -36,6 +37,7 @@ const router = createBrowserRouter([
           { path: "videos", element: <VideosPage /> },
           { path: "videos/:id", element: <VideoDetailsPage /> },
           { path: "video/builder", element: <VideoBuilder /> },
+          { path: "published-videos", element: <PublishedVideosPage /> },
         ]
       },
       { path: "*", element: <NotFound /> },

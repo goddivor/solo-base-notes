@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { useQuery, useMutation } from '@apollo/client';
 import { useNavigate } from 'react-router';
 import { GET_VIDEOS } from '../../../lib/graphql/queries';
-import { DELETE_VIDEO } from '../../../lib/graphql/mutations';
-import { VideoPlay, Trash, MusicCircle, Calendar } from 'iconsax-react';
+import { DELETE_VIDEO, PUBLISH_VIDEO } from '../../../lib/graphql/mutations';
+import { VideoPlay, Trash, MusicCircle, Calendar, TickCircle } from 'iconsax-react';
 import Button from '../../../components/actions/button';
 import ActionConfirmationModal from '../../../components/modals/ActionConfirmationModal';
 import { useToast } from '../../../context/toast-context';
@@ -43,6 +43,8 @@ interface Video {
   tags: string;
   segments: VideoSegment[];
   musicTracks: SpotifyTrack[];
+  isPublished: boolean;
+  youtubeVideoId: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -52,6 +54,9 @@ const VideosPage: React.FC = () => {
   const toast = useToast();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [videoToDelete, setVideoToDelete] = useState<{ id: string; title: string } | null>(null);
+  const [showPublishModal, setShowPublishModal] = useState(false);
+  const [videoToPublish, setVideoToPublish] = useState<{ id: string; title: string } | null>(null);
+  const [youtubeVideoId, setYoutubeVideoId] = useState('');
 
   const { data, loading, refetch } = useQuery(GET_VIDEOS);
 
@@ -68,6 +73,20 @@ const VideosPage: React.FC = () => {
     },
   });
 
+  const [publishVideo, { loading: publishing }] = useMutation(PUBLISH_VIDEO, {
+    onCompleted: () => {
+      refetch();
+      setShowPublishModal(false);
+      setVideoToPublish(null);
+      setYoutubeVideoId('');
+      toast.success('Video published!', 'The video has been marked as published');
+    },
+    onError: (error) => {
+      console.error('Error publishing video:', error);
+      toast.error('Failed to publish video', error.message || 'Please try again');
+    },
+  });
+
   const handleDeleteClick = (id: string, title: string) => {
     setVideoToDelete({ id, title });
     setShowDeleteModal(true);
@@ -76,6 +95,20 @@ const VideosPage: React.FC = () => {
   const handleConfirmDelete = () => {
     if (videoToDelete) {
       deleteVideo({ variables: { id: videoToDelete.id } });
+    }
+  };
+
+  const handlePublishClick = (id: string, title: string) => {
+    setVideoToPublish({ id, title });
+    setYoutubeVideoId('');
+    setShowPublishModal(true);
+  };
+
+  const handleConfirmPublish = () => {
+    if (videoToPublish && youtubeVideoId.trim()) {
+      publishVideo({ variables: { id: videoToPublish.id, youtubeVideoId: youtubeVideoId.trim() } });
+    } else {
+      toast.error('YouTube Video ID required', 'Please enter a YouTube video ID');
     }
   };
 
@@ -151,9 +184,17 @@ const VideosPage: React.FC = () => {
                         <VideoPlay size={24} variant="Bold" color="#FFFFFF" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="text-lg font-bold text-white mb-1 line-clamp-2">
-                          {video.title}
-                        </h3>
+                        <div className="flex items-start justify-between gap-2 mb-1">
+                          <h3 className="text-lg font-bold text-white line-clamp-2 flex-1">
+                            {video.title}
+                          </h3>
+                          {video.isPublished && (
+                            <span className="flex-shrink-0 px-2 py-1 bg-green-500 text-white rounded text-xs font-medium flex items-center gap-1">
+                              <TickCircle size={12} variant="Bold" color="#FFFFFF" />
+                              Published
+                            </span>
+                          )}
+                        </div>
                         <div className="flex items-center gap-2 text-xs text-white/80">
                           <Calendar size={14} color="#FFFFFF" />
                           <span>{formatDate(video.createdAt)}</span>
@@ -203,16 +244,32 @@ const VideosPage: React.FC = () => {
 
                     {/* Actions */}
                     <div className="pt-4 border-t border-gray-200">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDeleteClick(video.id, video.title);
-                        }}
-                        className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
-                      >
-                        <Trash size={16} variant="Bulk" color="#DC2626" />
-                        Delete
-                      </button>
+                      <div className="flex gap-2">
+                        {!video.isPublished && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handlePublishClick(video.id, video.title);
+                            }}
+                            className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-green-600 bg-green-50 hover:bg-green-100 rounded-lg transition-colors"
+                          >
+                            <TickCircle size={16} variant="Bulk" color="#10B981" />
+                            Publish
+                          </button>
+                        )}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteClick(video.id, video.title);
+                          }}
+                          className={`flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors ${
+                            video.isPublished ? 'w-full' : 'flex-1'
+                          }`}
+                        >
+                          <Trash size={16} variant="Bulk" color="#DC2626" />
+                          Delete
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -221,6 +278,59 @@ const VideosPage: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Publish Modal */}
+      {showPublishModal && (
+        <div className="fixed inset-0 bg-black/20 bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full">
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4">
+              <h2 className="text-xl font-bold text-gray-900">Publish Video</h2>
+            </div>
+
+            <div className="p-6 space-y-4">
+              <p className="text-sm text-gray-600 mb-4">
+                Enter the YouTube video ID to mark "{videoToPublish?.title}" as published.
+              </p>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  YouTube Video ID *
+                </label>
+                <input
+                  type="text"
+                  value={youtubeVideoId}
+                  onChange={(e) => setYoutubeVideoId(e.target.value)}
+                  placeholder="e.g., dQw4w9WgXcQ"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  The video ID can be found in the YouTube URL: youtube.com/watch?v=<strong>VIDEO_ID</strong>
+                </p>
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <Button
+                  onClick={() => {
+                    setShowPublishModal(false);
+                    setVideoToPublish(null);
+                    setYoutubeVideoId('');
+                  }}
+                  className="flex-1 px-4 py-3 border-2 border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg font-medium transition-all"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleConfirmPublish}
+                  disabled={publishing || !youtubeVideoId.trim()}
+                  className="flex-1 px-4 py-3 bg-green-600 text-white hover:bg-green-700 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                >
+                  {publishing ? 'Publishing...' : 'Publish'}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Delete Confirmation Modal */}
       <ActionConfirmationModal

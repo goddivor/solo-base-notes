@@ -5,10 +5,38 @@ import { GET_VIDEO } from '../../../lib/graphql/queries';
 import { ArrowLeft, VideoPlay, MusicCircle, Calendar, DocumentText1 } from 'iconsax-react';
 import Button from '../../../components/actions/button';
 
+interface Character {
+  malId: number;
+  name: string;
+  image?: string;
+}
+
+interface Theme {
+  id: string;
+  name: string;
+  color: string;
+}
+
+interface Extract {
+  id: string;
+  animeId: number;
+  animeTitle: string;
+  animeImage?: string;
+  episode?: number;
+  season?: number;
+  timing: {
+    start: string;
+    end: string;
+  };
+  characters: Character[];
+  theme?: Theme;
+}
+
 interface VideoSegment {
   extractId: string;
   text: string;
   order: number;
+  extract?: Extract;
 }
 
 interface SpotifyArtist {
@@ -71,6 +99,23 @@ const VideoDetailsPage: React.FC = () => {
     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
 
+  // Generate consistent color for each anime
+  const getAnimeColor = (animeId: number): string => {
+    const colors = [
+      '#EF4444', // red-500
+      '#F59E0B', // amber-500
+      '#10B981', // emerald-500
+      '#3B82F6', // blue-500
+      '#8B5CF6', // violet-500
+      '#EC4899', // pink-500
+      '#14B8A6', // teal-500
+      '#F97316', // orange-500
+      '#06B6D4', // cyan-500
+      '#A855F7', // purple-500
+    ];
+    return colors[animeId % colors.length];
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -116,9 +161,8 @@ const VideoDetailsPage: React.FC = () => {
                 <VideoPlay size={32} variant="Bold" color="#FFFFFF" />
               </div>
               <div className="flex-1">
-                <h1 className="text-3xl font-bold mb-2">{video.title}</h1>
-                <p className="text-white/90 mb-4">{video.description}</p>
-                <div className="flex items-center gap-4 text-sm text-white/80">
+                <h1 className="text-3xl font-bold mb-4">{video.title}</h1>
+                <div className="flex items-center gap-4 text-sm text-white/80 mb-4">
                   <div className="flex items-center gap-2">
                     <Calendar size={16} color="#FFFFFF" />
                     <span>Created: {formatDate(video.createdAt)}</span>
@@ -140,8 +184,19 @@ const VideoDetailsPage: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left Column - Segments */}
+          {/* Left Column - Description & Segments */}
           <div className="lg:col-span-2 space-y-6">
+            {/* Description */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <h2 className="text-lg font-bold text-gray-900 mb-4">Description</h2>
+              <textarea
+                readOnly
+                value={video.description}
+                className="w-full p-4 border border-gray-300 rounded-lg bg-gray-50 text-gray-700 text-sm font-mono resize-none focus:outline-none"
+                rows={10}
+              />
+            </div>
+
             {/* Tags */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
               <h2 className="text-lg font-bold text-gray-900 mb-4">Tags</h2>
@@ -165,21 +220,65 @@ const VideoDetailsPage: React.FC = () => {
               <div className="space-y-4">
                 {[...video.segments]
                   .sort((a, b) => a.order - b.order)
-                  .map((segment, index) => (
-                    <div
-                      key={segment.extractId}
-                      className="p-4 bg-gray-50 rounded-lg border-l-4 border-indigo-600"
-                    >
-                      <div className="flex items-start gap-3">
-                        <div className="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center flex-shrink-0">
-                          <span className="text-white font-bold text-sm">{index + 1}</span>
-                        </div>
-                        <div className="flex-1">
-                          <p className="text-gray-900 italic">"{segment.text}"</p>
+                  .map((segment, index) => {
+                    const extract = segment.extract;
+                    const animeColor = extract ? getAnimeColor(extract.animeId) : '#6366F1';
+
+                    return (
+                      <div
+                        key={segment.extractId}
+                        className="p-4 bg-gray-50 rounded-lg border-l-4"
+                        style={{ borderLeftColor: animeColor }}
+                      >
+                        <div className="flex items-start gap-3">
+                          <div
+                            className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+                            style={{ backgroundColor: animeColor }}
+                          >
+                            <span className="text-white font-bold text-sm">{index + 1}</span>
+                          </div>
+                          <div className="flex-1">
+                            {extract && (
+                              <div className="mb-3">
+                                <div className="flex items-center gap-2 flex-wrap mb-2">
+                                  <span
+                                    className="px-2 py-1 rounded text-xs font-bold text-white"
+                                    style={{ backgroundColor: animeColor }}
+                                  >
+                                    {extract.animeTitle}
+                                  </span>
+                                  {extract.episode && (
+                                    <span className="px-2 py-1 bg-gray-200 text-gray-700 rounded text-xs font-medium">
+                                      Épisode {extract.episode}
+                                    </span>
+                                  )}
+                                  {extract.timing && (
+                                    <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-medium">
+                                      {extract.timing.start} - {extract.timing.end}
+                                    </span>
+                                  )}
+                                  {extract.theme && (
+                                    <span
+                                      className="px-2 py-1 rounded text-xs font-medium text-white"
+                                      style={{ backgroundColor: extract.theme.color }}
+                                    >
+                                      {extract.theme.name}
+                                    </span>
+                                  )}
+                                </div>
+                                {extract.characters && extract.characters.length > 0 && (
+                                  <div className="text-xs text-gray-600 mb-2">
+                                    Personnages: {extract.characters.map((c) => c.name).join(', ')}
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                            <p className="text-gray-900 italic leading-relaxed">"{segment.text}"</p>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
               </div>
             </div>
           </div>

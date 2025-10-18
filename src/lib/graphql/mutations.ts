@@ -185,3 +185,52 @@ export const DELETE_VIDEO = gql`
     deleteVideo(id: $id)
   }
 `;
+
+export const PUBLISH_VIDEO = gql`
+  mutation PublishVideo($id: ID!, $youtubeVideoId: String!) {
+    publishVideo(id: $id, youtubeVideoId: $youtubeVideoId) {
+      id
+      isPublished
+      youtubeVideoId
+      updatedAt
+    }
+  }
+`;
+
+export const LINK_PUBLISHED_VIDEO = gql`
+  mutation LinkPublishedVideo($input: LinkPublishedVideoInput!) {
+    linkPublishedVideo(input: $input) {
+      id
+      youtubeVideoId
+      title
+      description
+      thumbnail
+      publishedAt
+      duration
+      viewCount
+      likeCount
+      commentCount
+      extractIds
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+export const UPDATE_PUBLISHED_VIDEO = gql`
+  mutation UpdatePublishedVideo($id: ID!, $extractIds: [ID!]!) {
+    updatePublishedVideo(id: $id, extractIds: $extractIds) {
+      id
+      youtubeVideoId
+      title
+      extractIds
+      updatedAt
+    }
+  }
+`;
+
+export const DELETE_PUBLISHED_VIDEO = gql`
+  mutation DeletePublishedVideo($id: ID!) {
+    deletePublishedVideo(id: $id)
+  }
+`;
