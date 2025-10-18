@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useQuery, useMutation } from '@apollo/client';
 import { GET_YOUTUBE_CHANNEL_VIDEOS, GET_EXTRACTS, GET_PUBLISHED_VIDEO_BY_YOUTUBE_ID, GET_SETTINGS } from '../../../lib/graphql/queries';
 import { LINK_PUBLISHED_VIDEO, UPDATE_PUBLISHED_VIDEO, DELETE_PUBLISHED_VIDEO } from '../../../lib/graphql/mutations';
-import { VideoPlay, Add, Trash, TickCircle, CloseCircle, Eye } from 'iconsax-react';
+import { Add, Trash, TickCircle, CloseCircle, Eye } from 'iconsax-react';
 import Button from '../../../components/actions/button';
 import ActionConfirmationModal from '../../../components/modals/ActionConfirmationModal';
 import { useToast } from '../../../context/toast-context';
