@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import { useQuery, useMutation } from '@apollo/client';
-import { GET_THEMES } from '../../lib/graphql/queries';
+import React, { useState, useRef, useEffect } from 'react';
+import { useQuery, useMutation, useLazyQuery } from '@apollo/client';
+import { GET_THEMES, SUGGEST_THEME_FROM_TEXT } from '../../lib/graphql/queries';
 import { CREATE_THEME } from '../../lib/graphql/mutations';
-import { Add, CloseCircle, TickCircle } from 'iconsax-react';
+import { Add, CloseCircle, TickCircle, ArrowDown2, SearchNormal1, MagicStar } from 'iconsax-react';
 import { Input } from '../forms/Input';
 import { Textarea } from '../forms/Textarea';
 import Portal from '../Portal';
@@ -18,6 +18,7 @@ interface Theme {
 interface ThemeSelectorProps {
   selectedThemeId?: string;
   onThemeChange: (themeId?: string) => void;
+  extractText?: string;
 }
 
 const PRESET_COLORS = [
@@ -27,12 +28,32 @@ const PRESET_COLORS = [
   '#EC4899', '#F43F5E', '#64748B', '#475569', '#1E293B',
 ];
 
-const ThemeSelector: React.FC<ThemeSelectorProps> = ({ selectedThemeId, onThemeChange }) => {
+const ThemeSelector: React.FC<ThemeSelectorProps> = ({ selectedThemeId, onThemeChange, extractText }) => {
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const [newTheme, setNewTheme] = useState({ name: '', description: '', color: '#6366F1' });
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const toast = useToast();
 
   const { data, refetch } = useQuery(GET_THEMES);
+
+  const [getSuggestion, { loading: loadingSuggestion }] = useLazyQuery(SUGGEST_THEME_FROM_TEXT, {
+    onCompleted: (data) => {
+      if (data.suggestThemeFromText) {
+        setNewTheme({
+          name: data.suggestThemeFromText.name,
+          description: data.suggestThemeFromText.description,
+          color: '#6366F1',
+        });
+        toast.success('Suggestion générée', 'Le thème a été suggéré par l\'IA');
+      }
+    },
+    onError: (error) => {
+      console.error('Error getting theme suggestion:', error);
+      toast.error('Échec de la suggestion', error.message || 'Impossible d\'obtenir une suggestion');
+    },
+  });
 
   const [createTheme, { loading: creating }] = useMutation(CREATE_THEME, {
     onCompleted: (data) => {
@@ -61,51 +82,155 @@ const ThemeSelector: React.FC<ThemeSelectorProps> = ({ selectedThemeId, onThemeC
   };
 
   const themes: Theme[] = data?.themes || [];
+  const selectedTheme = themes.find(t => t.id === selectedThemeId);
+
+  // Filter themes by search query
+  const filteredThemes = themes.filter(theme =>
+    theme.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    theme.description?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+        setSearchQuery('');
+      }
+    };
+
+    if (isDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isDropdownOpen]);
+
+  const handleSelectTheme = (themeId: string) => {
+    onThemeChange(themeId);
+    setIsDropdownOpen(false);
+    setSearchQuery('');
+  };
+
+  const handleOpenCreateModal = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsModalOpen(true);
+    setIsDropdownOpen(false);
+  };
+
+  const handleGetSuggestion = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!extractText || extractText.trim().length === 0) {
+      toast.error('Texte requis', 'Veuillez d\'abord remplir le texte de l\'extrait');
+      return;
+    }
+    getSuggestion({ variables: { text: extractText } });
+  };
 
   return (
     <>
-      <div className="space-y-4">
-        {/* Theme List */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {/* Existing Themes */}
-          {themes.map((theme) => (
-            <button
-              key={theme.id}
-              type="button"
-              onClick={() => onThemeChange(theme.id)}
-              className={`p-4 rounded-lg border-2 transition-all text-left ${
-                selectedThemeId === theme.id
-                  ? 'border-indigo-600 bg-indigo-50'
-                  : 'border-gray-200 hover:border-gray-300 bg-white'
-              }`}
-            >
-              <div className="flex items-center gap-2">
-                <div
-                  className="w-4 h-4 rounded-full flex-shrink-0"
-                  style={{ backgroundColor: theme.color }}
-                />
-                <div className="font-medium text-gray-900 truncate">{theme.name}</div>
-              </div>
-              {theme.description && (
-                <div className="text-xs text-gray-500 mt-1 line-clamp-2">{theme.description}</div>
-              )}
-            </button>
-          ))}
-        </div>
-
-        {/* Create New Theme Button */}
+      <div className="relative" ref={dropdownRef}>
+        {/* Dropdown Trigger */}
         <button
           type="button"
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            setIsModalOpen(true);
-          }}
-          className="w-full flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-indigo-400 hover:text-indigo-600 transition-colors"
+          onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+          className="w-full px-4 py-3 bg-white border-2 border-gray-300 rounded-lg text-left flex items-center justify-between hover:border-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all"
         >
-          <Add size={20} color="#6B7280" />
-          <span>Create New Theme</span>
+          <div className="flex items-center gap-3 flex-1 min-w-0">
+            {selectedTheme ? (
+              <>
+                <div
+                  className="w-5 h-5 rounded-full flex-shrink-0"
+                  style={{ backgroundColor: selectedTheme.color }}
+                />
+                <span className="font-medium text-gray-900 truncate">{selectedTheme.name}</span>
+              </>
+            ) : (
+              <span className="text-gray-500">Select a theme...</span>
+            )}
+          </div>
+          <ArrowDown2
+            size={20}
+            color="#6B7280"
+            className={`flex-shrink-0 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`}
+          />
         </button>
+
+        {/* Dropdown Menu */}
+        {isDropdownOpen && (
+          <div className="absolute z-50 w-full mt-2 bg-white border-2 border-gray-300 rounded-lg shadow-xl max-h-80 overflow-hidden flex flex-col">
+            {/* Search Input */}
+            <div className="p-3 border-b border-gray-200">
+              <div className="relative">
+                <SearchNormal1
+                  size={18}
+                  color="#9CA3AF"
+                  className="absolute left-3 top-1/2 -translate-y-1/2"
+                />
+                <input
+                  type="text"
+                  placeholder="Search themes..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
+                  autoFocus
+                />
+              </div>
+            </div>
+
+            {/* Theme List */}
+            <div className="overflow-y-auto flex-1">
+              {filteredThemes.length > 0 ? (
+                filteredThemes.map((theme) => (
+                  <button
+                    key={theme.id}
+                    type="button"
+                    onClick={() => handleSelectTheme(theme.id)}
+                    className={`w-full px-4 py-3 text-left flex items-center gap-3 transition-colors ${
+                      selectedThemeId === theme.id
+                        ? 'bg-indigo-50 text-indigo-900'
+                        : 'hover:bg-gray-50 text-gray-900'
+                    }`}
+                  >
+                    <div
+                      className="w-5 h-5 rounded-full flex-shrink-0"
+                      style={{ backgroundColor: theme.color }}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium truncate">{theme.name}</div>
+                      {theme.description && (
+                        <div className="text-xs text-gray-500 truncate">{theme.description}</div>
+                      )}
+                    </div>
+                    {selectedThemeId === theme.id && (
+                      <TickCircle size={20} variant="Bulk" color="#4F46E5" />
+                    )}
+                  </button>
+                ))
+              ) : (
+                <div className="px-4 py-8 text-center text-gray-500 text-sm">
+                  No themes found
+                </div>
+              )}
+            </div>
+
+            {/* Create New Theme Button */}
+            <div className="p-3 border-t border-gray-200">
+              <button
+                type="button"
+                onClick={handleOpenCreateModal}
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded-lg font-medium transition-colors"
+              >
+                <Add size={20} color="#4F46E5" />
+                <span>Create New Theme</span>
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Modal */}
@@ -135,6 +260,39 @@ const ThemeSelector: React.FC<ThemeSelectorProps> = ({ selectedThemeId, onThemeC
             </div>
 
             <form onSubmit={handleCreateTheme} className="p-6 space-y-6">
+              {/* AI Suggestion Button */}
+              {extractText && (
+                <div className="bg-purple-50 border-2 border-purple-200 rounded-lg p-4">
+                  <div className="flex items-start gap-3">
+                    <MagicStar size={24} variant="Bulk" color="#9333EA" className="flex-shrink-0 mt-0.5" />
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-purple-900 mb-1">Suggestion IA</h3>
+                      <p className="text-sm text-purple-700 mb-3">
+                        Laissez l'IA suggérer un thème basé sur votre extrait
+                      </p>
+                      <button
+                        type="button"
+                        onClick={handleGetSuggestion}
+                        disabled={loadingSuggestion}
+                        className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-purple-600 text-white hover:bg-purple-700 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {loadingSuggestion ? (
+                          <>
+                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                            <span>Génération...</span>
+                          </>
+                        ) : (
+                          <>
+                            <MagicStar size={20} variant="Bulk" color="#FFFFFF" />
+                            <span>Suggérer un thème</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Name */}
               <div>
                 <Input
