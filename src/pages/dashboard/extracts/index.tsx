@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useQuery, useMutation } from '@apollo/client';
 import { useNavigate } from 'react-router';
-import { GET_EXTRACTS, GET_THEMES } from '../../../lib/graphql/queries';
+import { GET_EXTRACTS, GET_THEMES, GET_THEME_GROUPS } from '../../../lib/graphql/queries';
 import { DELETE_EXTRACT } from '../../../lib/graphql/mutations';
 import { Add, Edit2, Trash, Clock, Calendar, Profile2User, VideoPlay, TickCircle, CloseCircle } from 'iconsax-react';
 import Button from '../../../components/actions/button';
@@ -18,6 +18,13 @@ interface Theme {
   id: string;
   name: string;
   color: string;
+}
+
+interface ThemeGroup {
+  id: string;
+  name: string;
+  color: string;
+  themes: Theme[];
 }
 
 interface Extract {
@@ -42,6 +49,8 @@ const ExtractsPage: React.FC = () => {
   const navigate = useNavigate();
   const toast = useToast();
   const [selectedThemeId, setSelectedThemeId] = useState<string | undefined>();
+  const [selectedThemeGroupId, setSelectedThemeGroupId] = useState<string | undefined>();
+  const [filterType, setFilterType] = useState<'all' | 'mini-theme' | 'theme-group'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [extractToDelete, setExtractToDelete] = useState<{ id: string; text: string } | null>(null);
@@ -49,9 +58,10 @@ const ExtractsPage: React.FC = () => {
   const [selectedExtracts, setSelectedExtracts] = useState<string[]>([]);
 
   const { data: themesData } = useQuery(GET_THEMES);
+  const { data: themeGroupsData } = useQuery(GET_THEME_GROUPS);
   const { data, loading, refetch } = useQuery(GET_EXTRACTS, {
     variables: {
-      themeId: selectedThemeId,
+      themeId: filterType === 'mini-theme' ? selectedThemeId : undefined,
     },
   });
 
@@ -109,15 +119,41 @@ const ExtractsPage: React.FC = () => {
     setSelectedExtracts([]);
   };
 
-  const themes: Theme[] = themesData?.themes || [];
-  const extracts: Extract[] = data?.extracts || [];
+  const themes: Theme[] = useMemo(() => themesData?.themes || [], [themesData]);
+  const themeGroups: ThemeGroup[] = useMemo(() => themeGroupsData?.themeGroups || [], [themeGroupsData]);
+  const extracts: Extract[] = useMemo(() => data?.extracts || [], [data]);
 
-  // Filter extracts by search query
-  const filteredExtracts = extracts.filter((extract) =>
-    extract.text.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    extract.animeTitle.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    extract.characters.some((char) => char.name.toLowerCase().includes(searchQuery.toLowerCase()))
-  );
+  // Get the selected theme group's theme IDs
+  const selectedThemeGroupThemeIds = useMemo(() => {
+    if (filterType === 'theme-group' && selectedThemeGroupId) {
+      const group = themeGroups.find(g => g.id === selectedThemeGroupId);
+      return group ? group.themes.map(t => t.id) : [];
+    }
+    return [];
+  }, [filterType, selectedThemeGroupId, themeGroups]);
+
+  // Filter extracts by search query and theme group
+  const filteredExtracts = useMemo(() => {
+    let filtered = extracts;
+
+    // Filter by theme group if selected
+    if (filterType === 'theme-group' && selectedThemeGroupThemeIds.length > 0) {
+      filtered = filtered.filter((extract) =>
+        extract.theme && selectedThemeGroupThemeIds.includes(extract.theme.id)
+      );
+    }
+
+    // Filter by search query
+    if (searchQuery) {
+      filtered = filtered.filter((extract) =>
+        extract.text.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        extract.animeTitle.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        extract.characters.some((char) => char.name.toLowerCase().includes(searchQuery.toLowerCase()))
+      );
+    }
+
+    return filtered;
+  }, [extracts, filterType, selectedThemeGroupThemeIds, searchQuery]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -179,45 +215,76 @@ const ExtractsPage: React.FC = () => {
           <div>
             <input
               type="text"
-              placeholder="Search by text, anime, or character..."
+              placeholder="Rechercher par texte, anime ou personnage..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
             />
           </div>
 
-          {/* Theme Filter */}
-          <div className="flex flex-wrap gap-2">
-            <button
-              onClick={() => setSelectedThemeId(undefined)}
-              className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                !selectedThemeId
-                  ? 'bg-gray-900 text-white'
-                  : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-              }`}
-            >
-              All Themes
-            </button>
-            {themes.map((theme) => (
-              <button
-                key={theme.id}
-                onClick={() => setSelectedThemeId(theme.id)}
-                className={`px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 ${
-                  selectedThemeId === theme.id
-                    ? 'text-white'
-                    : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-                }`}
-                style={{
-                  backgroundColor: selectedThemeId === theme.id ? theme.color : undefined,
+          {/* Theme Filters */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Filter Type Buttons */}
+            <div className="md:col-span-1">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Filtrer par
+              </label>
+              <select
+                value={filterType}
+                onChange={(e) => {
+                  setFilterType(e.target.value as 'all' | 'mini-theme' | 'theme-group');
+                  setSelectedThemeId(undefined);
+                  setSelectedThemeGroupId(undefined);
                 }}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
               >
-                <div
-                  className="w-3 h-3 rounded-full"
-                  style={{ backgroundColor: theme.color }}
-                />
-                {theme.name}
-              </button>
-            ))}
+                <option value="all">Tous les extraits</option>
+                <option value="mini-theme">Mini-Thème</option>
+                <option value="theme-group">Groupe de Thème</option>
+              </select>
+            </div>
+
+            {/* Mini-Theme Selector */}
+            {filterType === 'mini-theme' && (
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Sélectionner un mini-thème
+                </label>
+                <select
+                  value={selectedThemeId || ''}
+                  onChange={(e) => setSelectedThemeId(e.target.value || undefined)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                >
+                  <option value="">Tous les mini-thèmes</option>
+                  {themes.map((theme) => (
+                    <option key={theme.id} value={theme.id}>
+                      {theme.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {/* Theme Group Selector */}
+            {filterType === 'theme-group' && (
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Sélectionner un groupe de thème
+                </label>
+                <select
+                  value={selectedThemeGroupId || ''}
+                  onChange={(e) => setSelectedThemeGroupId(e.target.value || undefined)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                >
+                  <option value="">Tous les groupes de thèmes</option>
+                  {themeGroups.map((group) => (
+                    <option key={group.id} value={group.id}>
+                      {group.name} ({group.themes.length} mini-thèmes)
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
           </div>
         </div>
 

@@ -1,6 +1,17 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { useNavigate } from 'react-router';
+import { useAuth } from '../../hooks/useAuth';
 
 const Landing: React.FC = () => {
+  const navigate = useNavigate();
+  const { isAuthenticated, loading } = useAuth();
+
+  useEffect(() => {
+    if (!loading && isAuthenticated) {
+      navigate('/dashboard');
+    }
+  }, [isAuthenticated, loading, navigate]);
+
   const handleGoogleLogin = () => {
     const authUrl = import.meta.env.VITE_AUTH_URL || 'http://localhost:4000/auth/google';
     window.location.href = authUrl;

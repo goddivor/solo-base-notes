@@ -84,6 +84,9 @@ const VideoBuilder: React.FC = () => {
   const [selectedTracks, setSelectedTracks] = useState<SpotifyTrack[]>([]);
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [validationError, setValidationError] = useState<string>('');
+  const [userEditedTitle, setUserEditedTitle] = useState(false);
+  const [userEditedDescription, setUserEditedDescription] = useState(false);
+  const [userEditedTags, setUserEditedTags] = useState(false);
 
   const { data, loading } = useQuery(GET_EXTRACTS);
 
@@ -104,7 +107,7 @@ const VideoBuilder: React.FC = () => {
 
   // Generate video title
   useEffect(() => {
-    if (selectedExtracts.length > 0) {
+    if (selectedExtracts.length > 0 && !userEditedTitle) {
       const theme = selectedExtracts[0].theme;
       const animes = [...new Set(selectedExtracts.map((e) => e.animeTitle))];
 
@@ -114,11 +117,11 @@ const VideoBuilder: React.FC = () => {
         setVideoTitle(title);
       }
     }
-  }, [selectedExtracts]);
+  }, [selectedExtracts, userEditedTitle]);
 
   // Generate video description
   useEffect(() => {
-    if (selectedExtracts.length > 0) {
+    if (selectedExtracts.length > 0 && !userEditedDescription) {
       let description = 'Extraits d\'anime:\n\n';
 
       selectedExtracts.forEach((extract, index) => {
@@ -140,11 +143,11 @@ const VideoBuilder: React.FC = () => {
 
       setVideoDescription(description);
     }
-  }, [selectedExtracts]);
+  }, [selectedExtracts, userEditedDescription]);
 
   // Generate video tags
   useEffect(() => {
-    if (selectedExtracts.length > 0) {
+    if (selectedExtracts.length > 0 && !userEditedTags) {
       const theme = selectedExtracts[0].theme;
       const animes = [...new Set(selectedExtracts.map((e) => e.animeTitle))];
 
@@ -158,7 +161,7 @@ const VideoBuilder: React.FC = () => {
 
       setVideoTags(tags.join(', '));
     }
-  }, [selectedExtracts]);
+  }, [selectedExtracts, userEditedTags]);
 
   // Initialize video segments
   useEffect(() => {
@@ -379,14 +382,20 @@ const VideoBuilder: React.FC = () => {
                   label="Video Title *"
                   type="text"
                   value={videoTitle}
-                  onChange={(e) => setVideoTitle(e.target.value)}
+                  onChange={(e) => {
+                    setVideoTitle(e.target.value);
+                    setUserEditedTitle(true);
+                  }}
                   placeholder="Enter video title"
                 />
 
                 <Textarea
                   label="Video Description *"
                   value={videoDescription}
-                  onChange={(e) => setVideoDescription(e.target.value)}
+                  onChange={(e) => {
+                    setVideoDescription(e.target.value);
+                    setUserEditedDescription(true);
+                  }}
                   placeholder="Enter video description"
                   rows={8}
                 />
@@ -395,7 +404,10 @@ const VideoBuilder: React.FC = () => {
                   label="Tags (comma separated) *"
                   type="text"
                   value={videoTags}
-                  onChange={(e) => setVideoTags(e.target.value)}
+                  onChange={(e) => {
+                    setVideoTags(e.target.value);
+                    setUserEditedTags(true);
+                  }}
                   placeholder="anime, citation, vf..."
                 />
               </div>

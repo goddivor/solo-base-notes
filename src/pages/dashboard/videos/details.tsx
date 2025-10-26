@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useQuery } from '@apollo/client';
 import { useNavigate, useParams } from 'react-router';
 import { GET_VIDEO } from '../../../lib/graphql/queries';
-import { ArrowLeft, VideoPlay, MusicCircle, Calendar, DocumentText1 } from 'iconsax-react';
+import { ArrowLeft, VideoPlay, MusicCircle, Calendar, DocumentText1, Image } from 'iconsax-react';
 import Button from '../../../components/actions/button';
+import ThumbnailGeneratorModal from '../../../components/modals/ThumbnailGeneratorModal';
 
 interface Character {
   malId: number;
@@ -75,6 +76,7 @@ interface Video {
 const VideoDetailsPage: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
+  const [showThumbnailModal, setShowThumbnailModal] = useState(false);
 
   const { data, loading } = useQuery(GET_VIDEO, {
     variables: { id },
@@ -362,10 +364,29 @@ const VideoDetailsPage: React.FC = () => {
                   <p className="font-mono text-xs text-gray-700 break-all">{video.id}</p>
                 </div>
               </div>
+
+              {/* Thumbnail Generator Button */}
+              <div className="mt-6 pt-6 border-t border-gray-200">
+                <Button
+                  onClick={() => setShowThumbnailModal(true)}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700 rounded-lg font-medium transition-all shadow-md hover:shadow-lg"
+                >
+                  <Image size={20} variant="Bold" color="#FFFFFF" />
+                  Générer la miniature
+                </Button>
+              </div>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Thumbnail Generator Modal */}
+      <ThumbnailGeneratorModal
+        isOpen={showThumbnailModal}
+        onClose={() => setShowThumbnailModal(false)}
+        videoTitle={video.title}
+        segments={video.segments}
+      />
     </div>
   );
 };
