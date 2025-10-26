@@ -7,6 +7,10 @@ React frontend application for managing anime extracts for Solo Geek YouTube cha
 - Google OAuth authentication
 - Anime search and character browsing (MyAnimeList & Jikan)
 - Extract creation and management
+- **Subtitle auto-fill with automatic text extraction**
+- **AI-powered text correction and spell checking**
+- **Subtitle formatting tag removal (clean text)**
+- **Real-time text sync with timing adjustments**
 - Theme-based organization with visual categories
 - Video builder with extract segments
 - Spotify music integration for videos
@@ -83,6 +87,8 @@ client/
 │   │   └── useAuth.ts             # Auth hook
 │   ├── lib/
 │   │   ├── apollo-client.ts       # Apollo Client setup
+│   │   ├── utils/
+│   │   │   └── subtitleUtils.ts   # Subtitle text processing
 │   │   └── graphql/
 │   │       ├── queries.ts         # GraphQL queries
 │   │       └── mutations.ts       # GraphQL mutations
@@ -108,6 +114,13 @@ client/
 
 ### Extract Management
 - Create extracts with anime metadata, characters, timing, and episode info
+- **Auto-fill extract text from OpenSubtitles**
+  - Language selection (English/French)
+  - ID mapping service selection (ARM/ids.moe)
+  - Automatic text extraction based on timing
+  - Real-time text updates when timing changes
+- **AI-powered spelling correction with Gemini**
+- **Clean subtitle formatting tags** ({\i1}, {\i0}, etc.)
 - Organize extracts by custom themes with colors
 - Filter extracts by theme or anime
 - Visual indicators for extracts already used in videos
@@ -157,6 +170,8 @@ All data fetching and mutations use Apollo Client with automatic JWT token injec
 - `SEARCH_ANIME` - Search anime by title
 - `GET_ANIME_CHARACTERS` - Get characters for an anime
 - `SEARCH_SPOTIFY_TRACKS` - Search music tracks
+- `SEARCH_SUBTITLES` - Search subtitles by anime/episode
+- `DOWNLOAD_SUBTITLE` - Download and parse full subtitle file
 
 ### Main Mutations
 - `CREATE_EXTRACT` - Create new extract
@@ -166,6 +181,7 @@ All data fetching and mutations use Apollo Client with automatic JWT token injec
 - `CREATE_VIDEO` - Create video from extracts
 - `PUBLISH_VIDEO` - Mark video as published with YouTube ID
 - `LINK_PUBLISHED_VIDEO` - Link YouTube video to extracts
+- `CORRECT_SPELLING` - AI-powered text correction
 
 ## Styling
 
