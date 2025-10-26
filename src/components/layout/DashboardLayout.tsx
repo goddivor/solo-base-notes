@@ -24,11 +24,6 @@ const DashboardLayout: React.FC = () => {
       end: true,
     },
     {
-      path: '/dashboard/extracts/new',
-      label: 'New Extract',
-      end: true,
-    },
-    {
       path: '/dashboard/extracts',
       label: 'All Extracts',
       end: true,
