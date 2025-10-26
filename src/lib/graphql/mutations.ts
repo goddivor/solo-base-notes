@@ -91,6 +91,46 @@ export const DELETE_THEME = gql`
   }
 `;
 
+export const CREATE_THEME_GROUP = gql`
+  mutation CreateThemeGroup($input: CreateThemeGroupInput!) {
+    createThemeGroup(input: $input) {
+      id
+      name
+      description
+      color
+      themes {
+        id
+        name
+        color
+      }
+      extractCount
+    }
+  }
+`;
+
+export const UPDATE_THEME_GROUP = gql`
+  mutation UpdateThemeGroup($id: ID!, $input: UpdateThemeGroupInput!) {
+    updateThemeGroup(id: $id, input: $input) {
+      id
+      name
+      description
+      color
+      themes {
+        id
+        name
+        color
+      }
+      extractCount
+    }
+  }
+`;
+
+export const DELETE_THEME_GROUP = gql`
+  mutation DeleteThemeGroup($id: ID!) {
+    deleteThemeGroup(id: $id)
+  }
+`;
+
 export const UPDATE_SETTINGS = gql`
   mutation UpdateSettings($youtubeChannelUrl: String) {
     updateSettings(youtubeChannelUrl: $youtubeChannelUrl) {
@@ -232,5 +272,11 @@ export const UPDATE_PUBLISHED_VIDEO = gql`
 export const DELETE_PUBLISHED_VIDEO = gql`
   mutation DeletePublishedVideo($id: ID!) {
     deletePublishedVideo(id: $id)
+  }
+`;
+
+export const CORRECT_SPELLING = gql`
+  mutation CorrectSpelling($text: String!) {
+    correctSpelling(text: $text)
   }
 `;

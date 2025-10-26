@@ -59,6 +59,79 @@ export const GET_THEMES = gql`
   }
 `;
 
+export const GET_THEME_GROUPS = gql`
+  query GetThemeGroups {
+    themeGroups {
+      id
+      name
+      description
+      color
+      themes {
+        id
+        name
+        color
+      }
+      extractCount
+    }
+  }
+`;
+
+export const SUGGEST_THEME_GROUPS = gql`
+  query SuggestThemeGroups {
+    suggestThemeGroups {
+      name
+      description
+      themeIds
+      color
+    }
+  }
+`;
+
+export const SUGGEST_THEME_FROM_TEXT = gql`
+  query SuggestThemeFromText($text: String!) {
+    suggestThemeFromText(text: $text) {
+      name
+      description
+    }
+  }
+`;
+
+export const GET_THEME_GROUP_WITH_EXTRACTS = gql`
+  query GetThemeGroupWithExtracts($id: ID!) {
+    themeGroup(id: $id) {
+      id
+      name
+      description
+      color
+      themes {
+        id
+        name
+        color
+        extractCount
+      }
+      extractCount
+    }
+    extracts {
+      id
+      text
+      animeTitle
+      animeImage
+      episode
+      characters {
+        malId
+        name
+        image
+      }
+      theme {
+        id
+        name
+        color
+      }
+      createdAt
+    }
+  }
+`;
+
 export const GET_EXTRACTS = gql`
   query GetExtracts($themeId: ID, $animeId: Int) {
     extracts(themeId: $themeId, animeId: $animeId) {
@@ -362,6 +435,40 @@ export const GET_PUBLISHED_VIDEO_BY_YOUTUBE_ID = gql`
       }
       createdAt
       updatedAt
+    }
+  }
+`;
+
+export const SEARCH_SUBTITLES = gql`
+  query SearchSubtitles($animeId: Int!, $season: Int, $episode: Int!, $languages: [String!]!, $mappingService: String) {
+    searchSubtitles(animeId: $animeId, season: $season, episode: $episode, languages: $languages, mappingService: $mappingService) {
+      fileId
+      fileName
+      language
+      downloadCount
+      rating
+      release
+      uploader
+    }
+  }
+`;
+
+export const DOWNLOAD_SUBTITLE = gql`
+  query DownloadSubtitle($fileId: String!) {
+    downloadSubtitle(fileId: $fileId) {
+      entries {
+        startTime
+        endTime
+        text
+      }
+    }
+  }
+`;
+
+export const EXTRACT_SUBTITLE_TEXT = gql`
+  query ExtractSubtitleText($fileId: String!, $startTime: String!, $endTime: String!) {
+    extractSubtitleText(fileId: $fileId, startTime: $startTime, endTime: $endTime) {
+      text
     }
   }
 `;
