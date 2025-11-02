@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useMutation, useLazyQuery } from '@apollo/client';
 import { useNavigate } from 'react-router';
-import { CREATE_EXTRACT, CORRECT_SPELLING } from '../../../lib/graphql/mutations';
+import { CREATE_EXTRACT, CORRECT_SPELLING, TRANSLATE_TEXT } from '../../../lib/graphql/mutations';
 import { SEARCH_SUBTITLES, DOWNLOAD_SUBTITLE } from '../../../lib/graphql/queries';
 import { extractTextByTiming, cleanSubtitleText } from '../../../lib/utils/subtitleUtils';
 import AnimeSearch from '../../../components/extracts/AnimeSearch';
@@ -10,7 +10,7 @@ import ThemeSelector from '../../../components/extracts/ThemeSelector';
 import TimelineSelector from '../../../components/extracts/TimelineSelector';
 import EpisodeSelector from '../../../components/extracts/EpisodeSelector';
 import ConfirmationModal from '../../../components/modals/ConfirmationModal';
-import { RefreshCircle, TickCircle, DocumentText, Subtitle, Broom } from 'iconsax-react';
+import { RefreshCircle, TickCircle, DocumentText, Subtitle, Broom, LanguageSquare } from 'iconsax-react';
 import { useToast } from '../../../context/toast-context';
 
 import Button from '../../../components/actions/button';
@@ -114,6 +114,17 @@ const NewExtract: React.FC = () => {
     },
   });
 
+  const [translateTextMutation, { loading: translating }] = useMutation(TRANSLATE_TEXT, {
+    onCompleted: (data) => {
+      setText(data.translateText);
+      toast.success('Text translated', 'Your text has been translated to French successfully');
+    },
+    onError: (error) => {
+      console.error('Error translating text:', error);
+      toast.error('Failed to translate text', error.message || 'Please try again');
+    },
+  });
+
   const [searchSubtitles, { loading: searchingSubtitles }] = useLazyQuery(SEARCH_SUBTITLES, {
     onCompleted: (data) => {
       if (data.searchSubtitles && data.searchSubtitles.length > 0) {
@@ -178,6 +189,17 @@ const NewExtract: React.FC = () => {
     const cleanedText = cleanSubtitleText(text);
     setText(cleanedText);
     toast.success('Text cleaned', 'Subtitle formatting has been removed');
+  };
+
+  const handleTranslate = () => {
+    if (!text || text.trim().length === 0) {
+      toast.error('No text to translate', 'Please enter some text first');
+      return;
+    }
+
+    translateTextMutation({
+      variables: { text },
+    });
   };
 
   const handleAutoFillFromSubtitles = () => {
@@ -406,34 +428,53 @@ const NewExtract: React.FC = () => {
                   className="resize-none"
                 />
 
-                {/* AI Correction & Clean Text Buttons */}
-                <div className="mt-3 grid grid-cols-2 gap-2">
+                {/* AI Buttons - Circular Icons */}
+                <div className="mt-3 flex items-center justify-center gap-4">
                   <button
-                    type="button"
-                    onClick={handleCorrectSpelling}
-                    disabled={correcting || !text}
-                    className="flex items-center justify-center gap-2 px-4 py-2.5 bg-purple-50 text-purple-600 hover:bg-purple-100 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  type="button"
+                  onClick={handleCorrectSpelling}
+                  disabled={correcting || !text}
+                  title="Correct Spelling"
+                  className="relative group w-14 h-14 rounded-full bg-purple-50 hover:bg-purple-100 flex items-center justify-center transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md"
                   >
-                    {correcting ? (
-                      <>
-                        <div className="w-4 h-4 border-2 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
-                        <span>Correcting...</span>
-                      </>
-                    ) : (
-                      <>
-                        <DocumentText size={20} variant="Bulk" color="#9333EA" />
-                        <span>Correct Spelling</span>
-                      </>
-                    )}
+                  {correcting ? (
+                    <div className="w-6 h-6 border-2 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
+                  ) : (
+                    <DocumentText size={24} variant="Bulk" color="#9333EA" />
+                  )}
+                  <span className="absolute -bottom-10 left-1/2 -translate-x-1/2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                    Correct Spelling
+                  </span>
                   </button>
+
                   <button
-                    type="button"
-                    onClick={handleCleanText}
-                    disabled={!text}
-                    className="flex items-center justify-center gap-2 px-4 py-2.5 bg-orange-50 text-orange-600 hover:bg-orange-100 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  type="button"
+                  onClick={handleCleanText}
+                  disabled={!text}
+                  title="Clean Text"
+                  className="relative group w-14 h-14 rounded-full bg-orange-50 hover:bg-orange-100 flex items-center justify-center transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md"
                   >
-                    <Broom size={20} variant="Bulk" color="#EA580C" />
-                    <span>Clean Text</span>
+                  <Broom size={24} variant="Bulk" color="#EA580C" />
+                  <span className="absolute -bottom-10 left-1/2 -translate-x-1/2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                    Clean Text
+                  </span>
+                  </button>
+
+                  <button
+                  type="button"
+                  onClick={handleTranslate}
+                  disabled={translating || !text}
+                  title="Translate to French"
+                  className="relative group w-14 h-14 rounded-full bg-blue-50 hover:bg-blue-100 flex items-center justify-center transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md"
+                  >
+                  {translating ? (
+                    <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                  ) : (
+                    <LanguageSquare size={24} variant="Bulk" color="#2563EB" />
+                  )}
+                  <span className="absolute -bottom-10 left-1/2 -translate-x-1/2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                    Translate to French
+                  </span>
                   </button>
                 </div>
 

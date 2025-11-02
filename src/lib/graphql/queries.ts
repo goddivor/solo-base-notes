@@ -87,6 +87,17 @@ export const SUGGEST_THEME_GROUPS = gql`
   }
 `;
 
+export const SUGGEST_CUSTOM_THEME_GROUPS = gql`
+  query SuggestCustomThemeGroups($userInput: String!) {
+    suggestCustomThemeGroups(userInput: $userInput) {
+      name
+      description
+      themeIds
+      color
+    }
+  }
+`;
+
 export const SUGGEST_THEME_FROM_TEXT = gql`
   query SuggestThemeFromText($text: String!) {
     suggestThemeFromText(text: $text) {
@@ -128,6 +139,7 @@ export const GET_THEME_GROUP_WITH_EXTRACTS = gql`
         color
       }
       createdAt
+      isUsedInVideo
     }
   }
 `;

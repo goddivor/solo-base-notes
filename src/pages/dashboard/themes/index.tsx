@@ -9,12 +9,14 @@ import {
   UPDATE_THEME_GROUP,
   DELETE_THEME_GROUP,
 } from '../../../lib/graphql/mutations';
-import { Add, Edit2, Trash, TickCircle, CloseCircle, Graph, MagicStar, SearchNormal1 } from 'iconsax-react';
+import { Add, Edit2, Trash, TickCircle, CloseCircle, Graph, MagicStar, SearchNormal1, VideoPlay } from 'iconsax-react';
 import Button from '../../../components/actions/button';
 import { Input } from '@/components/forms/Input';
 import { Textarea } from '@/components/forms/Textarea';
 import ActionConfirmationModal from '../../../components/modals/ActionConfirmationModal';
 import ThemeGroupGraphModal from '../../../components/themes/ThemeGroupGraphModal';
+import ThemeGroupVideoCreationModal from '../../../components/themes/ThemeGroupVideoCreationModal';
+import CustomThemeGroupSuggestionModal from '../../../components/themes/CustomThemeGroupSuggestionModal';
 import { useToast } from '../../../context/toast-context';
 
 interface Theme {
@@ -71,6 +73,9 @@ const ThemesPage: React.FC = () => {
   const [selectedGroupForGraph, setSelectedGroupForGraph] = useState<ThemeGroup | null>(null);
   const [showSuggestionsModal, setShowSuggestionsModal] = useState(false);
   const [selectedSuggestions, setSelectedSuggestions] = useState<number[]>([]);
+  const [showCustomSuggestionModal, setShowCustomSuggestionModal] = useState(false);
+  const [showVideoCreationModal, setShowVideoCreationModal] = useState(false);
+  const [selectedGroupForVideo, setSelectedGroupForVideo] = useState<ThemeGroup | null>(null);
 
   const { data: themesData, loading: themesLoading, refetch: refetchThemes } = useQuery(GET_THEMES);
   const { data: themeGroupsData, loading: themeGroupsLoading, refetch: refetchThemeGroups } = useQuery(GET_THEME_GROUPS);
@@ -286,6 +291,16 @@ const ThemesPage: React.FC = () => {
     setSelectedGroupForGraph(null);
   };
 
+  const handleOpenVideoCreation = (group: ThemeGroup) => {
+    setSelectedGroupForVideo(group);
+    setShowVideoCreationModal(true);
+  };
+
+  const handleCloseVideoCreation = () => {
+    setShowVideoCreationModal(false);
+    setSelectedGroupForVideo(null);
+  };
+
   const handleGetSuggestions = () => {
     if (themes.length < 2) {
       toast.error('Pas assez de thèmes', 'Créez au moins 2 mini-thèmes pour obtenir des suggestions');
@@ -404,23 +419,32 @@ const ThemesPage: React.FC = () => {
           {/* Action Buttons */}
           <div className="flex gap-3">
             {activeTab === 'theme-groups' && themes.length >= 2 && (
-              <Button
-                onClick={handleGetSuggestions}
-                disabled={loadingSuggestions}
-                className="flex items-center gap-2 px-6 py-3 bg-purple-600 text-white hover:bg-purple-700 rounded-lg font-medium transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {loadingSuggestions ? (
-                  <>
-                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    <span>Génération...</span>
-                  </>
-                ) : (
-                  <>
-                    <MagicStar size={20} variant="Bulk" color="#FFFFFF" />
-                    <span>Suggestions IA</span>
-                  </>
-                )}
-              </Button>
+              <>
+                <Button
+                  onClick={handleGetSuggestions}
+                  disabled={loadingSuggestions}
+                  className="flex items-center gap-2 px-6 py-3 bg-purple-600 text-white hover:bg-purple-700 rounded-lg font-medium transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {loadingSuggestions ? (
+                    <>
+                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      <span>Génération...</span>
+                    </>
+                  ) : (
+                    <>
+                      <MagicStar size={20} variant="Bulk" color="#FFFFFF" />
+                      <span>Suggestions IA</span>
+                    </>
+                  )}
+                </Button>
+                <Button
+                  onClick={() => setShowCustomSuggestionModal(true)}
+                  className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700 rounded-lg font-medium transition-all shadow-lg hover:shadow-xl"
+                >
+                  <MagicStar size={20} variant="Bulk" color="#FFFFFF" />
+                  <span>Suggestion Personnalisée</span>
+                </Button>
+              </>
             )}
             <Button
               onClick={() => activeTab === 'mini-themes' ? openThemeModal() : openThemeGroupModal()}
@@ -618,6 +642,13 @@ const ThemesPage: React.FC = () => {
                         </div>
                       )}
                       <div className="space-y-2">
+                        <button
+                          onClick={() => handleOpenVideoCreation(group)}
+                          className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-purple-600 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors"
+                        >
+                          <VideoPlay size={16} variant="Bulk" color="#9333EA" />
+                          Créer une Vidéo
+                        </button>
                         <button
                           onClick={() => handleOpenGraph(group)}
                           className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-green-600 bg-green-50 hover:bg-green-100 rounded-lg transition-colors"
@@ -875,6 +906,15 @@ const ThemesPage: React.FC = () => {
         />
       )}
 
+      {/* Video Creation Modal */}
+      {selectedGroupForVideo && (
+        <ThemeGroupVideoCreationModal
+          themeGroup={selectedGroupForVideo}
+          isOpen={showVideoCreationModal}
+          onClose={handleCloseVideoCreation}
+        />
+      )}
+
       {/* AI Suggestions Modal */}
       {showSuggestionsModal && (
         <div className="fixed inset-0 bg-black/20 bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -1021,6 +1061,12 @@ const ThemesPage: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Custom Suggestion Modal */}
+      <CustomThemeGroupSuggestionModal
+        isOpen={showCustomSuggestionModal}
+        onClose={() => setShowCustomSuggestionModal(false)}
+      />
     </div>
   );
 };

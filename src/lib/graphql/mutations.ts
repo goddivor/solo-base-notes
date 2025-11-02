@@ -280,3 +280,9 @@ export const CORRECT_SPELLING = gql`
     correctSpelling(text: $text)
   }
 `;
+
+export const TRANSLATE_TEXT = gql`
+  mutation TranslateText($text: String!) {
+    translateText(text: $text)
+  }
+`;
