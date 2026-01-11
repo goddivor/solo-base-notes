@@ -1,16 +1,22 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useAuth } from '../../hooks/useAuth';
+import { DocumentText1, Tag, SearchNormal1 } from 'iconsax-react';
 
 const Landing: React.FC = () => {
   const navigate = useNavigate();
   const { isAuthenticated, loading } = useAuth();
+  const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
     if (!loading && isAuthenticated) {
       navigate('/dashboard');
     }
   }, [isAuthenticated, loading, navigate]);
+
+  useEffect(() => {
+    setIsLoaded(true);
+  }, []);
 
   const handleGoogleLogin = () => {
     const authUrl = import.meta.env.VITE_AUTH_URL || 'http://localhost:4000/auth/google';
@@ -27,7 +33,7 @@ const Landing: React.FC = () => {
           </div>
           <button
             onClick={handleGoogleLogin}
-            className="flex items-center gap-2 px-6 py-2 bg-white border-2 border-gray-300 rounded-lg text-gray-700 font-semibold hover:bg-gray-50 hover:border-gray-400 transition-all shadow-sm"
+            className="flex items-center gap-2 px-6 py-2 bg-white border-2 border-gray-300 rounded-lg text-gray-700 font-semibold hover:bg-gray-50 hover:border-gray-400 hover:shadow-md hover:scale-105 transition-all shadow-sm"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24">
               <path
@@ -55,16 +61,22 @@ const Landing: React.FC = () => {
       {/* Hero Section */}
       <div className="max-w-7xl mx-auto px-6 py-20">
         <div className="text-center">
-          <h2 className="text-5xl font-bold text-gray-900 mb-6">
+          <h2 className={`text-5xl font-bold text-gray-900 mb-6 transition-all duration-700 ease-out ${
+            isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+          }`}>
             Manage Your Anime Extracts
           </h2>
-          <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+          <p className={`text-xl text-gray-600 mb-8 max-w-2xl mx-auto transition-all duration-700 ease-out delay-150 ${
+            isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+          }`}>
             Create, organize, and manage anime quotes for your YouTube videos.
             Keep track of characters, timing, and themes all in one place.
           </p>
           <button
             onClick={handleGoogleLogin}
-            className="inline-flex items-center gap-3 px-8 py-4 bg-indigo-600 text-white text-lg font-semibold rounded-lg hover:bg-indigo-700 transition-all shadow-lg hover:shadow-xl"
+            className={`inline-flex items-center gap-3 px-8 py-4 bg-indigo-600 text-white text-lg font-semibold rounded-lg hover:bg-indigo-700 hover:scale-105 transition-all duration-500 ease-out shadow-lg hover:shadow-2xl delay-300 ${
+              isLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
+            }`}
           >
             <svg className="w-6 h-6" viewBox="0 0 24 24">
               <path
@@ -90,22 +102,34 @@ const Landing: React.FC = () => {
 
         {/* Features */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-20">
-          <div className="text-center p-6">
-            <div className="text-4xl mb-4">📝</div>
+          <div className={`text-center p-6 bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-700 ease-out hover:scale-105 delay-[400ms] ${
+            isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'
+          }`}>
+            <div className="w-16 h-16 mx-auto bg-indigo-100 rounded-2xl flex items-center justify-center mb-4 transition-all duration-300 hover:scale-110 hover:bg-indigo-200 hover:shadow-lg">
+              <DocumentText1 size={32} color="#4F46E5" variant="Bulk" />
+            </div>
             <h3 className="text-xl font-semibold mb-2 text-gray-900">Create Extracts</h3>
             <p className="text-gray-600">
               Save anime quotes with characters, timing, and episode information
             </p>
           </div>
-          <div className="text-center p-6">
-            <div className="text-4xl mb-4">🏷️</div>
+          <div className={`text-center p-6 bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-700 ease-out hover:scale-105 delay-[550ms] ${
+            isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'
+          }`}>
+            <div className="w-16 h-16 mx-auto bg-purple-100 rounded-2xl flex items-center justify-center mb-4 transition-all duration-300 hover:scale-110 hover:bg-purple-200 hover:shadow-lg">
+              <Tag size={32} color="#9333EA" variant="Bulk" />
+            </div>
             <h3 className="text-xl font-semibold mb-2 text-gray-900">Organize by Themes</h3>
             <p className="text-gray-600">
               Group extracts by video themes for easy content planning
             </p>
           </div>
-          <div className="text-center p-6">
-            <div className="text-4xl mb-4">🔍</div>
+          <div className={`text-center p-6 bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-700 ease-out hover:scale-105 delay-[700ms] ${
+            isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'
+          }`}>
+            <div className="w-16 h-16 mx-auto bg-blue-100 rounded-2xl flex items-center justify-center mb-4 transition-all duration-300 hover:scale-110 hover:bg-blue-200 hover:shadow-lg">
+              <SearchNormal1 size={32} color="#2563EB" variant="Bulk" />
+            </div>
             <h3 className="text-xl font-semibold mb-2 text-gray-900">Search Anime</h3>
             <p className="text-gray-600">
               Powered by MyAnimeList and Jikan API for accurate anime data

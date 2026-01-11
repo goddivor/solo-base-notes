@@ -1,6 +1,13 @@
 # Solo Base Notes - Frontend
 
-React frontend application for managing anime extracts for Solo Geek YouTube channel.
+
+<div align="center">
+  <img src="public/yt.svg" alt="YT Logo" width="120" height="120">
+
+  <p>React frontend application for managing anime extracts for Solo Geek YouTube channel.</p>
+
+  ![Solo Based Notes Screenshot](public/screenshot.png)
+</div>
 
 ## Features
 
