@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useCallback } from 'react';
+import React, { useMemo, useState, useCallback, useEffect } from 'react';
 import { useQuery } from '@apollo/client';
 import ReactFlow, {
   type Node,
@@ -14,6 +14,8 @@ import ReactFlow, {
 import 'reactflow/dist/style.css';
 import { GET_THEME_GROUP_WITH_EXTRACTS } from '../../lib/graphql/queries';
 import { CloseCircle } from 'iconsax-react';
+import { useTheme } from '../../context/theme-context';
+import { cn } from '../../lib/utils';
 
 interface Character {
   malId: number;
@@ -219,7 +221,28 @@ const nodeTypes = {
 };
 
 const ThemeGroupGraphModal: React.FC<Props> = ({ themeGroup, isOpen, onClose }) => {
+  const { theme } = useTheme();
   const [selectedExtractId, setSelectedExtractId] = useState<string | null>(null);
+  const modalRef = React.useRef<HTMLDivElement>(null);
+
+  // Handle Escape key to close modal
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) {
+        handleClose();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen]);
+
+  // Handle click outside to close modal
+  const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.target === e.currentTarget) {
+      handleClose();
+    }
+  };
 
   const { data, loading } = useQuery(GET_THEME_GROUP_WITH_EXTRACTS, {
     variables: { id: themeGroup.id },
@@ -362,31 +385,58 @@ const ThemeGroupGraphModal: React.FC<Props> = ({ themeGroup, isOpen, onClose }) 
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-2xl w-full h-[90vh] max-w-7xl flex flex-col">
+    <div
+      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+      onClick={handleBackdropClick}
+    >
+      <div
+        ref={modalRef}
+        className={cn(
+          "rounded-xl shadow-2xl w-full h-[90vh] max-w-7xl flex flex-col",
+          theme === "dark" ? "bg-[#12121a]" : "bg-white"
+        )}
+      >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+        <div className={cn(
+          "flex items-center justify-between px-6 py-4 border-b",
+          theme === "dark" ? "border-gray-700" : "border-gray-200"
+        )}>
           <div>
-            <h2 className="text-xl font-bold text-gray-900">
+            <h2 className={cn(
+              "text-xl font-bold",
+              theme === "dark" ? "text-white" : "text-gray-900"
+            )}>
               Visualisation du Groupe : {themeGroup.name}
             </h2>
-            <p className="text-sm text-gray-600 mt-1">
+            <p className={cn(
+              "text-sm mt-1",
+              theme === "dark" ? "text-gray-400" : "text-gray-600"
+            )}>
               {themeGroup.themes.length} mini-thèmes • {themeGroup.extractCount} extraits
             </p>
           </div>
           <button
             onClick={handleClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
+            className={cn(
+              "transition-colors",
+              theme === "dark" ? "text-gray-500 hover:text-gray-300" : "text-gray-400 hover:text-gray-600"
+            )}
           >
-            <CloseCircle size={28} variant="Bulk" color="#9CA3AF" />
+            <CloseCircle size={28} variant="Bulk" color={theme === "dark" ? "#6B7280" : "#9CA3AF"} />
           </button>
         </div>
 
         {/* Graph */}
-        <div className="flex-1 relative" style={{ width: '100%', height: '100%' }}>
+        <div className={cn(
+          "flex-1 relative",
+          theme === "dark" ? "bg-[#0a0a0f]" : "bg-white"
+        )} style={{ width: '100%', height: '100%' }}>
           {loading ? (
             <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+              <div className={cn(
+                "w-12 h-12 border-4 border-t-transparent rounded-full animate-spin",
+                theme === "dark" ? "border-purple-500" : "border-indigo-600"
+              )}></div>
             </div>
           ) : (
             <div style={{ width: '100%', height: '100%' }}>
@@ -408,19 +458,22 @@ const ThemeGroupGraphModal: React.FC<Props> = ({ themeGroup, isOpen, onClose }) 
                 }}
                 proOptions={{ hideAttribution: true }}
               >
-                <Background color="#f3f4f6" gap={16} />
+                <Background color={theme === "dark" ? "#1a1a25" : "#f3f4f6"} gap={16} />
                 <Controls />
                 <MiniMap
                   nodeColor={(node) => {
                     if (node.type === 'themeGroup') return themeGroup.color;
                     if (node.type === 'miniTheme') {
                       const themeId = node.id.replace('theme-', '');
-                      const theme = themeGroup.themes.find(t => t.id === themeId);
-                      return theme?.color || '#6366F1';
+                      const foundTheme = themeGroup.themes.find(t => t.id === themeId);
+                      return foundTheme?.color || '#6366F1';
                     }
-                    return '#e5e7eb';
+                    return theme === "dark" ? '#374151' : '#e5e7eb';
                   }}
-                  maskColor="rgba(0, 0, 0, 0.1)"
+                  maskColor={theme === "dark" ? "rgba(0, 0, 0, 0.3)" : "rgba(0, 0, 0, 0.1)"}
+                  style={{
+                    backgroundColor: theme === "dark" ? "#1a1a25" : "#ffffff",
+                  }}
                 />
               </ReactFlow>
             </div>
@@ -428,18 +481,34 @@ const ThemeGroupGraphModal: React.FC<Props> = ({ themeGroup, isOpen, onClose }) 
         </div>
 
         {/* Legend */}
-        <div className="px-6 py-3 border-t border-gray-200 bg-gray-50">
-          <div className="flex items-center gap-6 text-xs text-gray-600">
+        <div className={cn(
+          "px-6 py-3 border-t",
+          theme === "dark"
+            ? "border-gray-700 bg-[#0a0a0f]"
+            : "border-gray-200 bg-gray-50"
+        )}>
+          <div className={cn(
+            "flex items-center gap-6 text-xs",
+            theme === "dark" ? "text-gray-400" : "text-gray-600"
+          )}>
             <div className="flex items-center gap-2">
               <div className="w-6 h-4 rounded" style={{ backgroundColor: themeGroup.color }}></div>
               <span>Groupe de thème</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-6 h-4 rounded bg-gradient-to-r from-indigo-500 to-purple-500"></div>
+              <div className={cn(
+                "w-6 h-4 rounded bg-gradient-to-r",
+                theme === "dark" ? "from-purple-500 to-cyan-500" : "from-indigo-500 to-purple-500"
+              )}></div>
               <span>Mini-thème</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-6 h-4 rounded border-2 border-gray-300 bg-white"></div>
+              <div className={cn(
+                "w-6 h-4 rounded border-2",
+                theme === "dark"
+                  ? "border-gray-600 bg-[#1a1a25]"
+                  : "border-gray-300 bg-white"
+              )}></div>
               <span>Extrait (survol pour détails)</span>
             </div>
           </div>
