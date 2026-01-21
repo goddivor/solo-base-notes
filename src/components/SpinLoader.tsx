@@ -1,7 +1,13 @@
-const SpinLoader = () => {
+interface SpinLoaderProps {
+  size?: number;
+  className?: string;
+}
+
+const SpinLoader = ({ size = 24, className = "" }: SpinLoaderProps) => {
   return (
     <svg
-      className="animate-spin -ml-1 h-6 w-6 text-white"
+      className={`animate-spin text-white ${className}`}
+      style={{ width: size, height: size }}
       xmlns="http://www.w3.org/2000/svg"
       fill="none"
       viewBox="0 0 24 24"
@@ -12,7 +18,7 @@ const SpinLoader = () => {
         cy="12"
         r="10"
         stroke="currentColor"
-        stroke-width="4"
+        strokeWidth="4"
       ></circle>
       <path
         className="opacity-75"
