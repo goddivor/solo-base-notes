@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useQuery } from '@apollo/client';
 import { GET_ANIME_CHARACTERS } from '../../lib/graphql/queries';
 import { CloseCircle } from 'iconsax-react';
+import { useTheme } from '../../context/theme-context';
+import { cn } from '../../lib/utils';
 
 interface Character {
   malId: number;
@@ -22,6 +24,7 @@ const CharacterSelector: React.FC<CharacterSelectorProps> = ({
   selectedCharacters,
   onCharactersChange,
 }) => {
+  const { theme } = useTheme();
   const [searchQuery, setSearchQuery] = useState('');
   const [allCharacters, setAllCharacters] = useState<Character[]>([]);
 
@@ -54,18 +57,26 @@ const CharacterSelector: React.FC<CharacterSelectorProps> = ({
           {selectedCharacters.map((char) => (
             <div
               key={char.malId}
-              className="flex items-center gap-2 px-3 py-2 bg-indigo-50 text-indigo-700 rounded-lg border border-indigo-200"
+              className={cn(
+                "flex items-center gap-2 px-3 py-2 rounded-xl border-2",
+                theme === "dark"
+                  ? "bg-purple-500/20 text-purple-300 border-purple-500/30"
+                  : "bg-purple-50 text-purple-700 border-purple-200"
+              )}
             >
               {char.image && (
-                <img src={char.image} alt={char.name} className="w-6 h-6 rounded-full" />
+                <img src={char.image} alt={char.name} className="w-6 h-6 rounded-full object-cover" />
               )}
               <span className="text-sm font-medium">{char.name}</span>
               <button
                 type="button"
                 onClick={() => handleToggleCharacter(char)}
-                className="hover:bg-indigo-100 rounded-full p-1"
+                className={cn(
+                  "rounded-full p-1 transition-colors",
+                  theme === "dark" ? "hover:bg-purple-500/30" : "hover:bg-purple-100"
+                )}
               >
-                <CloseCircle size={16} variant="Bulk" color="#4F46E5" />
+                <CloseCircle size={16} variant="Bulk" color={theme === "dark" ? "#C084FC" : "#7C3AED"} />
               </button>
             </div>
           ))}
@@ -77,18 +88,30 @@ const CharacterSelector: React.FC<CharacterSelectorProps> = ({
         type="text"
         value={searchQuery}
         onChange={(e) => setSearchQuery(e.target.value)}
-        placeholder="Search characters..."
-        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+        placeholder="Rechercher des personnages..."
+        className={cn(
+          "w-full px-4 py-3 border-2 rounded-xl transition-colors",
+          "focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent",
+          theme === "dark"
+            ? "bg-[#0a0a0f] border-gray-700 text-white placeholder-gray-500"
+            : "bg-white border-gray-300 text-gray-900 placeholder-gray-400"
+        )}
       />
 
       {/* Characters List */}
       {loading ? (
         <div className="text-center py-8">
-          <div className="inline-block w-8 h-8 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-sm text-gray-600 mt-2">Loading characters...</p>
+          <div className="inline-block w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
+          <p className={cn(
+            "text-sm mt-2",
+            theme === "dark" ? "text-gray-400" : "text-gray-600"
+          )}>Chargement des personnages...</p>
         </div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-h-96 overflow-y-auto">
+        <div className={cn(
+          "grid grid-cols-2 sm:grid-cols-3 gap-3 max-h-96 overflow-y-auto p-1 rounded-xl",
+          theme === "dark" ? "scrollbar-dark" : "scrollbar-light"
+        )}>
           {filteredCharacters.map((character) => {
             const isSelected = selectedCharacters.some((c) => c.malId === character.malId);
             return (
@@ -96,11 +119,16 @@ const CharacterSelector: React.FC<CharacterSelectorProps> = ({
                 key={character.malId}
                 type="button"
                 onClick={() => handleToggleCharacter(character)}
-                className={`flex items-center gap-2 p-3 rounded-lg border-2 transition-all ${
+                className={cn(
+                  "flex items-center gap-2 p-3 rounded-xl border-2 transition-all",
                   isSelected
-                    ? 'border-indigo-600 bg-indigo-50'
-                    : 'border-gray-200 hover:border-gray-300 bg-white'
-                }`}
+                    ? theme === "dark"
+                      ? "border-purple-500 bg-purple-500/20"
+                      : "border-purple-600 bg-purple-50"
+                    : theme === "dark"
+                      ? "border-gray-700 hover:border-gray-600 bg-[#0a0a0f]"
+                      : "border-gray-200 hover:border-gray-300 bg-white"
+                )}
               >
                 {character.image && (
                   <img
@@ -109,7 +137,10 @@ const CharacterSelector: React.FC<CharacterSelectorProps> = ({
                     className="w-10 h-10 rounded-full object-cover flex-shrink-0"
                   />
                 )}
-                <span className="text-sm font-medium text-gray-900 truncate flex-1 text-left">
+                <span className={cn(
+                  "text-sm font-medium truncate flex-1 text-left",
+                  theme === "dark" ? "text-white" : "text-gray-900"
+                )}>
                   {character.name}
                 </span>
               </button>

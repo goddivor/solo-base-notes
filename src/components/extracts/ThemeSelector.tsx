@@ -7,6 +7,8 @@ import { Input } from '../forms/Input';
 import { Textarea } from '../forms/Textarea';
 import Portal from '../Portal';
 import { useToast } from '../../context/toast-context';
+import { useTheme } from '../../context/theme-context';
+import { cn } from '../../lib/utils';
 
 interface Theme {
   id: string;
@@ -29,6 +31,7 @@ const PRESET_COLORS = [
 ];
 
 const ThemeSelector: React.FC<ThemeSelectorProps> = ({ selectedThemeId, onThemeChange, extractText }) => {
+  const { theme } = useTheme();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -138,7 +141,13 @@ const ThemeSelector: React.FC<ThemeSelectorProps> = ({ selectedThemeId, onThemeC
         <button
           type="button"
           onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-          className="w-full px-4 py-3 bg-white border-2 border-gray-300 rounded-lg text-left flex items-center justify-between hover:border-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all"
+          className={cn(
+            "w-full px-4 py-3 border-2 rounded-xl text-left flex items-center justify-between transition-all",
+            "focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent",
+            theme === "dark"
+              ? "bg-[#0a0a0f] border-gray-700 hover:border-gray-600"
+              : "bg-white border-gray-300 hover:border-gray-400"
+          )}
         >
           <div className="flex items-center gap-3 flex-1 min-w-0">
             {selectedTheme ? (
@@ -147,36 +156,53 @@ const ThemeSelector: React.FC<ThemeSelectorProps> = ({ selectedThemeId, onThemeC
                   className="w-5 h-5 rounded-full flex-shrink-0"
                   style={{ backgroundColor: selectedTheme.color }}
                 />
-                <span className="font-medium text-gray-900 truncate">{selectedTheme.name}</span>
+                <span className={cn(
+                  "font-medium truncate",
+                  theme === "dark" ? "text-white" : "text-gray-900"
+                )}>{selectedTheme.name}</span>
               </>
             ) : (
-              <span className="text-gray-500">Select a theme...</span>
+              <span className={theme === "dark" ? "text-gray-500" : "text-gray-500"}>Sélectionner un thème...</span>
             )}
           </div>
           <ArrowDown2
             size={20}
-            color="#6B7280"
+            color={theme === "dark" ? "#6B7280" : "#9CA3AF"}
             className={`flex-shrink-0 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`}
           />
         </button>
 
         {/* Dropdown Menu */}
         {isDropdownOpen && (
-          <div className="absolute z-50 w-full mt-2 bg-white border-2 border-gray-300 rounded-lg shadow-xl max-h-80 overflow-hidden flex flex-col">
+          <div className={cn(
+            "absolute z-50 w-full mt-2 border-2 rounded-xl shadow-xl max-h-80 overflow-hidden flex flex-col",
+            theme === "dark"
+              ? "bg-[#12121a] border-gray-700"
+              : "bg-white border-gray-200"
+          )}>
             {/* Search Input */}
-            <div className="p-3 border-b border-gray-200">
+            <div className={cn(
+              "p-3 border-b",
+              theme === "dark" ? "border-gray-700" : "border-gray-200"
+            )}>
               <div className="relative">
                 <SearchNormal1
                   size={18}
-                  color="#9CA3AF"
+                  color={theme === "dark" ? "#6B7280" : "#9CA3AF"}
                   className="absolute left-3 top-1/2 -translate-y-1/2"
                 />
                 <input
                   type="text"
-                  placeholder="Search themes..."
+                  placeholder="Rechercher un thème..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
+                  className={cn(
+                    "w-full pl-10 pr-4 py-2 border-2 rounded-lg text-sm transition-colors",
+                    "focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent",
+                    theme === "dark"
+                      ? "bg-[#0a0a0f] border-gray-700 text-white placeholder-gray-500"
+                      : "bg-white border-gray-300 text-gray-900 placeholder-gray-400"
+                  )}
                   autoFocus
                 />
               </div>
@@ -185,48 +211,67 @@ const ThemeSelector: React.FC<ThemeSelectorProps> = ({ selectedThemeId, onThemeC
             {/* Theme List */}
             <div className="overflow-y-auto flex-1">
               {filteredThemes.length > 0 ? (
-                filteredThemes.map((theme) => (
+                filteredThemes.map((t) => (
                   <button
-                    key={theme.id}
+                    key={t.id}
                     type="button"
-                    onClick={() => handleSelectTheme(theme.id)}
-                    className={`w-full px-4 py-3 text-left flex items-center gap-3 transition-colors ${
-                      selectedThemeId === theme.id
-                        ? 'bg-indigo-50 text-indigo-900'
-                        : 'hover:bg-gray-50 text-gray-900'
-                    }`}
+                    onClick={() => handleSelectTheme(t.id)}
+                    className={cn(
+                      "w-full px-4 py-3 text-left flex items-center gap-3 transition-colors",
+                      selectedThemeId === t.id
+                        ? theme === "dark"
+                          ? "bg-purple-500/20 text-purple-300"
+                          : "bg-purple-50 text-purple-900"
+                        : theme === "dark"
+                          ? "hover:bg-gray-800 text-white"
+                          : "hover:bg-gray-50 text-gray-900"
+                    )}
                   >
                     <div
                       className="w-5 h-5 rounded-full flex-shrink-0"
-                      style={{ backgroundColor: theme.color }}
+                      style={{ backgroundColor: t.color }}
                     />
                     <div className="flex-1 min-w-0">
-                      <div className="font-medium truncate">{theme.name}</div>
-                      {theme.description && (
-                        <div className="text-xs text-gray-500 truncate">{theme.description}</div>
+                      <div className="font-medium truncate">{t.name}</div>
+                      {t.description && (
+                        <div className={cn(
+                          "text-xs truncate",
+                          theme === "dark" ? "text-gray-500" : "text-gray-500"
+                        )}>{t.description}</div>
                       )}
                     </div>
-                    {selectedThemeId === theme.id && (
-                      <TickCircle size={20} variant="Bulk" color="#4F46E5" />
+                    {selectedThemeId === t.id && (
+                      <TickCircle size={20} variant="Bulk" color="#A855F7" />
                     )}
                   </button>
                 ))
               ) : (
-                <div className="px-4 py-8 text-center text-gray-500 text-sm">
-                  No themes found
+                <div className={cn(
+                  "px-4 py-8 text-center text-sm",
+                  theme === "dark" ? "text-gray-500" : "text-gray-500"
+                )}>
+                  Aucun thème trouvé
                 </div>
               )}
             </div>
 
             {/* Create New Theme Button */}
-            <div className="p-3 border-t border-gray-200">
+            <div className={cn(
+              "p-3 border-t",
+              theme === "dark" ? "border-gray-700" : "border-gray-200"
+            )}>
               <button
                 type="button"
                 onClick={handleOpenCreateModal}
-                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded-lg font-medium transition-colors"
+                className={cn(
+                  "w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg font-medium transition-colors",
+                  theme === "dark"
+                    ? "bg-purple-500/20 text-purple-400 hover:bg-purple-500/30"
+                    : "bg-purple-50 text-purple-600 hover:bg-purple-100"
+                )}
               >
-                <Add size={20} color="#4F46E5" />
-                <span>Create New Theme</span>
+                <Add size={20} color={theme === "dark" ? "#C084FC" : "#9333EA"} />
+                <span>Créer un nouveau thème</span>
               </button>
             </div>
           </div>
@@ -237,7 +282,7 @@ const ThemeSelector: React.FC<ThemeSelectorProps> = ({ selectedThemeId, onThemeC
       {isModalOpen && (
         <Portal>
           <div
-            className="fixed inset-0 bg-black/20 bg-opacity-50 flex items-center justify-center z-[9999] p-4"
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999] p-4"
             onClick={(e) => {
               if (e.target === e.currentTarget) {
                 setIsModalOpen(false);
@@ -245,36 +290,61 @@ const ThemeSelector: React.FC<ThemeSelectorProps> = ({ selectedThemeId, onThemeC
             }}
           >
             <div
-              className="bg-white rounded-xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto"
+              className={cn(
+                "rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto",
+                theme === "dark" ? "bg-[#12121a]" : "bg-white"
+              )}
               onClick={(e) => e.stopPropagation()}
             >
-            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-              <h2 className="text-xl font-bold text-gray-900">Create New Theme</h2>
+            <div className={cn(
+              "sticky top-0 border-b px-6 py-4 flex items-center justify-between",
+              theme === "dark"
+                ? "bg-[#12121a] border-gray-700"
+                : "bg-white border-gray-200"
+            )}>
+              <h2 className={cn(
+                "text-xl font-bold",
+                theme === "dark" ? "text-white" : "text-gray-900"
+              )}>Créer un nouveau thème</h2>
               <button
                 type="button"
                 onClick={() => setIsModalOpen(false)}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
+                className={cn(
+                  "transition-colors",
+                  theme === "dark" ? "text-gray-500 hover:text-gray-300" : "text-gray-400 hover:text-gray-600"
+                )}
               >
-                <CloseCircle size={24} variant="Bulk" color="#9CA3AF" />
+                <CloseCircle size={24} variant="Bulk" color={theme === "dark" ? "#6B7280" : "#9CA3AF"} />
               </button>
             </div>
 
             <form onSubmit={handleCreateTheme} className="p-6 space-y-6">
               {/* AI Suggestion Button */}
               {extractText && (
-                <div className="bg-purple-50 border-2 border-purple-200 rounded-lg p-4">
+                <div className={cn(
+                  "border-2 rounded-xl p-4",
+                  theme === "dark"
+                    ? "bg-purple-500/10 border-purple-500/30"
+                    : "bg-purple-50 border-purple-200"
+                )}>
                   <div className="flex items-start gap-3">
-                    <MagicStar size={24} variant="Bulk" color="#9333EA" className="flex-shrink-0 mt-0.5" />
+                    <MagicStar size={24} variant="Bulk" color="#A855F7" className="flex-shrink-0 mt-0.5" />
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-purple-900 mb-1">Suggestion IA</h3>
-                      <p className="text-sm text-purple-700 mb-3">
+                      <h3 className={cn(
+                        "font-semibold mb-1",
+                        theme === "dark" ? "text-purple-300" : "text-purple-900"
+                      )}>Suggestion IA</h3>
+                      <p className={cn(
+                        "text-sm mb-3",
+                        theme === "dark" ? "text-purple-400" : "text-purple-700"
+                      )}>
                         Laissez l'IA suggérer un thème basé sur votre extrait
                       </p>
                       <button
                         type="button"
                         onClick={handleGetSuggestion}
                         disabled={loadingSuggestion}
-                        className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-purple-600 text-white hover:bg-purple-700 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-purple-500 to-cyan-500 text-white hover:from-purple-400 hover:to-cyan-400 rounded-lg font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {loadingSuggestion ? (
                           <>
@@ -318,8 +388,11 @@ const ThemeSelector: React.FC<ThemeSelectorProps> = ({ selectedThemeId, onThemeC
 
               {/* Color Picker */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-3">
-                  Theme Color *
+                <label className={cn(
+                  "block text-sm font-medium mb-3",
+                  theme === "dark" ? "text-gray-300" : "text-gray-700"
+                )}>
+                  Couleur du thème *
                 </label>
                 <div className="grid grid-cols-10 gap-2">
                   {PRESET_COLORS.map((color) => (
@@ -327,11 +400,14 @@ const ThemeSelector: React.FC<ThemeSelectorProps> = ({ selectedThemeId, onThemeC
                       key={color}
                       type="button"
                       onClick={() => setNewTheme({ ...newTheme, color })}
-                      className={`w-8 h-8 rounded-full transition-all hover:scale-110 ${
-                        newTheme.color === color
-                          ? 'ring-2 ring-offset-2 ring-gray-900'
-                          : ''
-                      }`}
+                      className={cn(
+                        "w-8 h-8 rounded-full transition-all hover:scale-110",
+                        newTheme.color === color && (
+                          theme === "dark"
+                            ? "ring-2 ring-offset-2 ring-offset-[#12121a] ring-white"
+                            : "ring-2 ring-offset-2 ring-gray-900"
+                        )
+                      )}
                       style={{ backgroundColor: color }}
                     />
                   ))}
@@ -355,15 +431,18 @@ const ThemeSelector: React.FC<ThemeSelectorProps> = ({ selectedThemeId, onThemeC
 
               {/* Preview */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Preview
+                <label className={cn(
+                  "block text-sm font-medium mb-2",
+                  theme === "dark" ? "text-gray-300" : "text-gray-700"
+                )}>
+                  Aperçu
                 </label>
                 <div
-                  className="h-20 rounded-lg flex items-center justify-center"
+                  className="h-20 rounded-xl flex items-center justify-center"
                   style={{ backgroundColor: newTheme.color }}
                 >
                   <span className="text-lg font-bold text-white">
-                    {newTheme.name || 'Theme Name'}
+                    {newTheme.name || 'Nom du thème'}
                   </span>
                 </div>
               </div>
@@ -373,24 +452,29 @@ const ThemeSelector: React.FC<ThemeSelectorProps> = ({ selectedThemeId, onThemeC
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="flex-1 px-4 py-3 border-2 border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg font-medium transition-all"
+                  className={cn(
+                    "flex-1 px-4 py-3 border-2 rounded-xl font-medium transition-all",
+                    theme === "dark"
+                      ? "border-gray-700 text-gray-300 hover:bg-gray-800"
+                      : "border-gray-300 text-gray-700 hover:bg-gray-50"
+                  )}
                 >
-                  Cancel
+                  Annuler
                 </button>
                 <button
                   type="submit"
                   disabled={creating}
-                  className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-indigo-600 text-white hover:bg-indigo-700 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-purple-500 to-cyan-500 text-white hover:from-purple-400 hover:to-cyan-400 rounded-xl font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                 >
                   {creating ? (
                     <>
                       <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                      Creating...
+                      Création...
                     </>
                   ) : (
                     <>
                       <TickCircle size={20} variant="Bulk" color="#FFFFFF" />
-                      Create Theme
+                      Créer le thème
                     </>
                   )}
                 </button>

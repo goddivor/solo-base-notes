@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useLazyQuery } from '@apollo/client';
 import { SEARCH_ANIME } from '../../lib/graphql/queries';
 import { SearchNormal1 } from 'iconsax-react';
+import { useTheme } from '../../context/theme-context';
+import { cn } from '../../lib/utils';
 
 interface Anime {
   id: number;
@@ -20,6 +22,7 @@ interface AnimeSearchProps {
 }
 
 const AnimeSearch: React.FC<AnimeSearchProps> = ({ onSelect, selectedAnime, apiSource }) => {
+  const { theme } = useTheme();
   const [searchQuery, setSearchQuery] = useState('');
   const [results, setResults] = useState<Anime[]>([]);
   const [showResults, setShowResults] = useState(false);
@@ -72,22 +75,38 @@ const AnimeSearch: React.FC<AnimeSearchProps> = ({ onSelect, selectedAnime, apiS
   return (
     <div className="space-y-4">
       {selectedAnime ? (
-        <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+        <div className={cn(
+          "flex items-center gap-4 p-4 rounded-xl border-2",
+          theme === "dark"
+            ? "bg-[#0a0a0f] border-gray-700"
+            : "bg-gray-50 border-gray-200"
+        )}>
           <img
             src={selectedAnime.image}
             alt={selectedAnime.title}
-            className="w-16 h-24 object-cover rounded"
+            className="w-16 h-24 object-cover rounded-lg"
           />
           <div className="flex-1">
-            <h3 className="font-semibold text-gray-900">{selectedAnime.title}</h3>
-            <p className="text-sm text-gray-500">ID: {selectedAnime.id}</p>
+            <h3 className={cn(
+              "font-semibold",
+              theme === "dark" ? "text-white" : "text-gray-900"
+            )}>{selectedAnime.title}</h3>
+            <p className={cn(
+              "text-sm",
+              theme === "dark" ? "text-gray-500" : "text-gray-500"
+            )}>ID: {selectedAnime.id}</p>
           </div>
           <button
             type="button"
             onClick={() => onSelect(null!)}
-            className="px-3 py-1 text-sm text-red-600 hover:bg-red-50 rounded"
+            className={cn(
+              "px-3 py-1 text-sm rounded-lg transition-colors",
+              theme === "dark"
+                ? "text-red-400 hover:bg-red-500/10"
+                : "text-red-600 hover:bg-red-50"
+            )}
           >
-            Change
+            Changer
           </button>
         </div>
       ) : (
@@ -97,38 +116,60 @@ const AnimeSearch: React.FC<AnimeSearchProps> = ({ onSelect, selectedAnime, apiS
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Type to search for an anime..."
-              className="w-full px-4 py-3 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              placeholder="Tapez pour rechercher un anime..."
+              className={cn(
+                "w-full px-4 py-3 pl-10 border-2 rounded-xl transition-colors",
+                "focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent",
+                theme === "dark"
+                  ? "bg-[#0a0a0f] border-gray-700 text-white placeholder-gray-500"
+                  : "bg-white border-gray-300 text-gray-900 placeholder-gray-400"
+              )}
             />
             <SearchNormal1
               size={20}
-              color="#9CA3AF"
+              color={theme === "dark" ? "#6B7280" : "#9CA3AF"}
               className="absolute left-3 top-1/2 -translate-y-1/2"
             />
             {loading && (
               <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                <div className="w-5 h-5 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+                <div className="w-5 h-5 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
               </div>
             )}
           </div>
 
           {showResults && results.length > 0 && (
-            <div className="absolute z-10 w-full mt-2 bg-white border border-gray-200 rounded-lg shadow-lg max-h-96 overflow-y-auto">
+            <div className={cn(
+              "absolute z-10 w-full mt-2 border-2 rounded-xl shadow-xl max-h-96 overflow-y-auto",
+              theme === "dark"
+                ? "bg-[#12121a] border-gray-700"
+                : "bg-white border-gray-200"
+            )}>
               {results.map((anime) => (
                 <button
                   key={anime.id}
                   type="button"
                   onClick={() => handleSelect(anime)}
-                  className="w-full flex items-start gap-3 p-3 hover:bg-gray-50 border-b border-gray-100 last:border-0 text-left"
+                  className={cn(
+                    "w-full flex items-start gap-3 p-3 border-b last:border-0 text-left transition-colors",
+                    theme === "dark"
+                      ? "hover:bg-purple-500/10 border-gray-700"
+                      : "hover:bg-gray-50 border-gray-100"
+                  )}
                 >
                   <img
                     src={anime.image}
                     alt={anime.title}
-                    className="w-12 h-16 object-cover rounded flex-shrink-0"
+                    className="w-12 h-16 object-cover rounded-lg flex-shrink-0"
                   />
                   <div className="flex-1 min-w-0">
-                    <h4 className="font-medium text-gray-900 truncate">{anime.title}</h4>
-                    <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">
+                    <h4 className={cn(
+                      "font-medium truncate",
+                      theme === "dark" ? "text-white" : "text-gray-900"
+                    )}>{anime.title}</h4>
+                    <div className={cn(
+                      "flex items-center gap-2 text-xs mt-1",
+                      theme === "dark" ? "text-gray-500" : "text-gray-500"
+                    )}>
                       {anime.year && <span>{anime.year}</span>}
                       {anime.episodes && <span>• {anime.episodes} eps</span>}
                       {anime.score && <span>• ⭐ {anime.score}</span>}

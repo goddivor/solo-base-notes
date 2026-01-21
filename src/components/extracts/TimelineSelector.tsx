@@ -1,4 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useTheme } from '../../context/theme-context';
+import { cn } from '../../lib/utils';
 
 interface TimelineSelectorProps {
   duration: number; // Total duration in minutes
@@ -13,6 +15,7 @@ const TimelineSelector: React.FC<TimelineSelectorProps> = ({
   endTime,
   onTimeChange,
 }) => {
+  const { theme } = useTheme();
   const trackRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState<'start' | 'end' | null>(null);
 
@@ -80,11 +83,19 @@ const TimelineSelector: React.FC<TimelineSelectorProps> = ({
       <div className="relative">
         <div
           ref={trackRef}
-          className="h-16 bg-gray-200 rounded-lg relative cursor-pointer"
+          className={cn(
+            "h-16 rounded-xl relative cursor-pointer",
+            theme === "dark" ? "bg-gray-800" : "bg-gray-200"
+          )}
         >
           {/* Selected Range */}
           <div
-            className="absolute top-0 h-full bg-indigo-500 bg-opacity-30 border-l-2 border-r-2 border-indigo-600"
+            className={cn(
+              "absolute top-0 h-full border-l-2 border-r-2",
+              theme === "dark"
+                ? "bg-purple-500/30 border-purple-500"
+                : "bg-purple-500/30 border-purple-600"
+            )}
             style={{
               left: `${startPos}%`,
               width: `${endPos - startPos}%`,
@@ -93,29 +104,55 @@ const TimelineSelector: React.FC<TimelineSelectorProps> = ({
 
           {/* Start Handle */}
           <div
-            className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-4 h-12 bg-indigo-600 rounded cursor-ew-resize hover:bg-indigo-700 transition-colors shadow-lg z-10"
+            className={cn(
+              "absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-4 h-12 rounded cursor-ew-resize transition-colors shadow-lg z-10",
+              theme === "dark"
+                ? "bg-purple-500 hover:bg-purple-400"
+                : "bg-purple-600 hover:bg-purple-700"
+            )}
             style={{ left: `${startPos}%` }}
             onMouseDown={() => handleMouseDown('start')}
           >
-            <div className="absolute -top-8 left-1/2 -translate-x-1/2 px-2 py-1 bg-gray-900 text-white text-xs rounded whitespace-nowrap">
+            <div className={cn(
+              "absolute -top-8 left-1/2 -translate-x-1/2 px-2 py-1 text-xs rounded whitespace-nowrap",
+              theme === "dark"
+                ? "bg-gray-900 text-white"
+                : "bg-gray-900 text-white"
+            )}>
               {startTime}
             </div>
           </div>
 
           {/* End Handle */}
           <div
-            className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-4 h-12 bg-indigo-600 rounded cursor-ew-resize hover:bg-indigo-700 transition-colors shadow-lg z-10"
+            className={cn(
+              "absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-4 h-12 rounded cursor-ew-resize transition-colors shadow-lg z-10",
+              theme === "dark"
+                ? "bg-purple-500 hover:bg-purple-400"
+                : "bg-purple-600 hover:bg-purple-700"
+            )}
             style={{ left: `${endPos}%` }}
             onMouseDown={() => handleMouseDown('end')}
           >
-            <div className="absolute -top-8 left-1/2 -translate-x-1/2 px-2 py-1 bg-gray-900 text-white text-xs rounded whitespace-nowrap">
+            <div className={cn(
+              "absolute -top-8 left-1/2 -translate-x-1/2 px-2 py-1 text-xs rounded whitespace-nowrap",
+              theme === "dark"
+                ? "bg-gray-900 text-white"
+                : "bg-gray-900 text-white"
+            )}>
               {endTime}
             </div>
           </div>
 
           {/* Time Markers */}
-          <div className="absolute bottom-1 left-2 text-xs text-gray-600">00:00</div>
-          <div className="absolute bottom-1 right-2 text-xs text-gray-600">
+          <div className={cn(
+            "absolute bottom-1 left-2 text-xs",
+            theme === "dark" ? "text-gray-400" : "text-gray-600"
+          )}>00:00</div>
+          <div className={cn(
+            "absolute bottom-1 right-2 text-xs",
+            theme === "dark" ? "text-gray-400" : "text-gray-600"
+          )}>
             {minutesToTime(duration)}
           </div>
         </div>
@@ -124,34 +161,55 @@ const TimelineSelector: React.FC<TimelineSelectorProps> = ({
       {/* Manual Time Input */}
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Start Time
+          <label className={cn(
+            "block text-sm font-medium mb-1",
+            theme === "dark" ? "text-gray-300" : "text-gray-700"
+          )}>
+            Début
           </label>
           <input
             type="text"
             value={startTime}
             onChange={(e) => onTimeChange(e.target.value, endTime)}
             placeholder="00:00"
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            className={cn(
+              "w-full px-3 py-2 border-2 rounded-xl transition-colors",
+              "focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent",
+              theme === "dark"
+                ? "bg-[#0a0a0f] border-gray-700 text-white placeholder-gray-500"
+                : "bg-white border-gray-300 text-gray-900 placeholder-gray-400"
+            )}
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            End Time
+          <label className={cn(
+            "block text-sm font-medium mb-1",
+            theme === "dark" ? "text-gray-300" : "text-gray-700"
+          )}>
+            Fin
           </label>
           <input
             type="text"
             value={endTime}
             onChange={(e) => onTimeChange(startTime, e.target.value)}
             placeholder="00:00"
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            className={cn(
+              "w-full px-3 py-2 border-2 rounded-xl transition-colors",
+              "focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent",
+              theme === "dark"
+                ? "bg-[#0a0a0f] border-gray-700 text-white placeholder-gray-500"
+                : "bg-white border-gray-300 text-gray-900 placeholder-gray-400"
+            )}
           />
         </div>
       </div>
 
       {/* Duration Display */}
-      <div className="text-sm text-gray-600 text-center">
-        Selected duration: {minutesToTime(timeToMinutes(endTime) - timeToMinutes(startTime))}
+      <div className={cn(
+        "text-sm text-center",
+        theme === "dark" ? "text-gray-400" : "text-gray-600"
+      )}>
+        Durée sélectionnée: {minutesToTime(timeToMinutes(endTime) - timeToMinutes(startTime))}
       </div>
     </div>
   );
