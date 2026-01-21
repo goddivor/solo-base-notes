@@ -26,7 +26,7 @@ export default function ExportModal({
   exportType,
   selectedIds,
 }: ExportModalProps) {
-  const { showToast } = useToast();
+  const { success, error: showError } = useToast();
   const [isExporting, setIsExporting] = useState(false);
 
   const [exportThemes] = useLazyQuery(EXPORT_THEMES);
@@ -68,9 +68,8 @@ export default function ExportModal({
               result.data.exportThemes.data,
               result.data.exportThemes.fileName
             );
-            showToast(
-              `Export réussi: ${result.data.exportThemes.metadata.totalThemes} thème(s), ${result.data.exportThemes.metadata.totalExtracts} extrait(s)`,
-              "success"
+            success(
+              `Export réussi: ${result.data.exportThemes.metadata.totalThemes} thème(s), ${result.data.exportThemes.metadata.totalExtracts} extrait(s)`
             );
           }
           break;
@@ -84,9 +83,8 @@ export default function ExportModal({
               result.data.exportThemeGroups.data,
               result.data.exportThemeGroups.fileName
             );
-            showToast(
-              `Export réussi: ${result.data.exportThemeGroups.metadata.totalThemeGroups} groupe(s), ${result.data.exportThemeGroups.metadata.totalThemes} thème(s), ${result.data.exportThemeGroups.metadata.totalExtracts} extrait(s)`,
-              "success"
+            success(
+              `Export réussi: ${result.data.exportThemeGroups.metadata.totalThemeGroups} groupe(s), ${result.data.exportThemeGroups.metadata.totalThemes} thème(s), ${result.data.exportThemeGroups.metadata.totalExtracts} extrait(s)`
             );
           }
           break;
@@ -100,9 +98,8 @@ export default function ExportModal({
               result.data.exportExtracts.data,
               result.data.exportExtracts.fileName
             );
-            showToast(
-              `Export réussi: ${result.data.exportExtracts.metadata.totalExtracts} extrait(s), ${result.data.exportExtracts.metadata.totalThemes} thème(s)`,
-              "success"
+            success(
+              `Export réussi: ${result.data.exportExtracts.metadata.totalExtracts} extrait(s), ${result.data.exportExtracts.metadata.totalThemes} thème(s)`
             );
           }
           break;
@@ -114,9 +111,8 @@ export default function ExportModal({
               result.data.exportAll.data,
               result.data.exportAll.fileName
             );
-            showToast(
-              `Export complet réussi: ${result.data.exportAll.metadata.totalThemes} thème(s), ${result.data.exportAll.metadata.totalThemeGroups} groupe(s), ${result.data.exportAll.metadata.totalExtracts} extrait(s)`,
-              "success"
+            success(
+              `Export complet réussi: ${result.data.exportAll.metadata.totalThemes} thème(s), ${result.data.exportAll.metadata.totalThemeGroups} groupe(s), ${result.data.exportAll.metadata.totalExtracts} extrait(s)`
             );
           }
           break;
@@ -125,9 +121,8 @@ export default function ExportModal({
       onClose();
     } catch (error) {
       console.error("Export error:", error);
-      showToast(
-        `Erreur lors de l'export: ${error instanceof Error ? error.message : "Erreur inconnue"}`,
-        "error"
+      showError(
+        `Erreur lors de l'export: ${error instanceof Error ? error.message : "Erreur inconnue"}`
       );
     } finally {
       setIsExporting(false);
