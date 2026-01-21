@@ -6,6 +6,8 @@ import { Add, Trash, TickCircle, CloseCircle, Eye } from 'iconsax-react';
 import Button from '../../../components/actions/button';
 import ActionConfirmationModal from '../../../components/modals/ActionConfirmationModal';
 import { useToast } from '../../../context/toast-context';
+import { useTheme } from '../../../context/theme-context';
+import { cn } from '../../../lib/utils';
 
 interface YouTubeVideo {
   id: string;
@@ -58,6 +60,7 @@ interface PublishedVideo {
 
 const PublishedVideosPage: React.FC = () => {
   const toast = useToast();
+  const { theme } = useTheme();
   const [selectedVideo, setSelectedVideo] = useState<YouTubeVideo | null>(null);
   const [selectedExtracts, setSelectedExtracts] = useState<string[]>([]);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -81,7 +84,7 @@ const PublishedVideosPage: React.FC = () => {
 
   const [linkPublishedVideo, { loading: linking }] = useMutation(LINK_PUBLISHED_VIDEO, {
     onCompleted: () => {
-      toast.success('Video linked!', 'YouTube video has been linked to extracts successfully');
+      toast.success('Vidéo liée !', 'La vidéo YouTube a été liée aux extraits avec succès');
       refetchExtracts();
       refetchPublished();
       setIsLinkingMode(false);
@@ -89,13 +92,13 @@ const PublishedVideosPage: React.FC = () => {
     },
     onError: (error) => {
       console.error('Error linking video:', error);
-      toast.error('Failed to link video', error.message || 'Please try again');
+      toast.error('Échec du lien', error.message || 'Veuillez réessayer');
     },
   });
 
   const [updatePublishedVideo, { loading: updating }] = useMutation(UPDATE_PUBLISHED_VIDEO, {
     onCompleted: () => {
-      toast.success('Video updated!', 'Linked extracts have been updated successfully');
+      toast.success('Vidéo mise à jour !', 'Les extraits liés ont été mis à jour');
       refetchExtracts();
       refetchPublished();
       setIsLinkingMode(false);
@@ -103,13 +106,13 @@ const PublishedVideosPage: React.FC = () => {
     },
     onError: (error) => {
       console.error('Error updating video:', error);
-      toast.error('Failed to update video', error.message || 'Please try again');
+      toast.error('Échec de la mise à jour', error.message || 'Veuillez réessayer');
     },
   });
 
   const [deletePublishedVideo, { loading: deleting }] = useMutation(DELETE_PUBLISHED_VIDEO, {
     onCompleted: () => {
-      toast.success('Link removed!', 'Video link has been removed successfully');
+      toast.success('Lien supprimé !', 'Le lien vidéo a été supprimé');
       refetchExtracts();
       refetchPublished();
       setShowDeleteModal(false);
@@ -117,7 +120,7 @@ const PublishedVideosPage: React.FC = () => {
     },
     onError: (error) => {
       console.error('Error deleting published video:', error);
-      toast.error('Failed to remove link', error.message || 'Please try again');
+      toast.error('Échec de la suppression', error.message || 'Veuillez réessayer');
     },
   });
 
@@ -147,7 +150,7 @@ const PublishedVideosPage: React.FC = () => {
 
   const toggleExtractSelection = (extractId: string, isUsed: boolean) => {
     if (isUsed && !selectedExtracts.includes(extractId)) {
-      toast.error('Extract already in use', 'This extract is already used in another video');
+      toast.error('Extrait déjà utilisé', 'Cet extrait est déjà utilisé dans une autre vidéo');
       return;
     }
 
@@ -160,12 +163,12 @@ const PublishedVideosPage: React.FC = () => {
 
   const handleSaveLink = () => {
     if (!selectedVideo) {
-      toast.error('No video selected', 'Please select a YouTube video first');
+      toast.error('Aucune vidéo sélectionnée', 'Veuillez sélectionner une vidéo YouTube');
       return;
     }
 
     if (selectedExtracts.length === 0) {
-      toast.error('No extracts selected', 'Please select at least one extract');
+      toast.error('Aucun extrait sélectionné', 'Veuillez sélectionner au moins un extrait');
       return;
     }
 
@@ -208,17 +211,28 @@ const PublishedVideosPage: React.FC = () => {
 
   if (!youtubeChannelUrl) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className={cn(
+        "min-h-screen flex items-center justify-center transition-colors duration-300",
+        theme === "dark" ? "bg-[#0a0a0f]" : "bg-gray-50"
+      )}>
         <div className="text-center max-w-md">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">No YouTube channel configured</h2>
-          <p className="text-gray-600 mb-6">
-            Please configure your YouTube channel URL in the settings before linking videos to extracts.
+          <h2 className={cn(
+            "text-2xl font-bold mb-4",
+            theme === "dark" ? "text-white" : "text-gray-900"
+          )}>
+            Aucune chaîne YouTube configurée
+          </h2>
+          <p className={cn(
+            "mb-6",
+            theme === "dark" ? "text-gray-400" : "text-gray-600"
+          )}>
+            Veuillez configurer l'URL de votre chaîne YouTube dans les paramètres avant de lier des vidéos aux extraits.
           </p>
           <Button
             onClick={() => window.location.href = '/dashboard'}
-            className="px-6 py-3 bg-indigo-600 text-white hover:bg-indigo-700 rounded-lg font-medium transition-all"
+            className="px-6 py-3 bg-gradient-to-r from-purple-500 to-cyan-500 text-white hover:from-purple-400 hover:to-cyan-400 rounded-xl font-medium transition-all"
           >
-            Go to Dashboard
+            Aller au Dashboard
           </Button>
         </div>
       </div>
@@ -226,25 +240,45 @@ const PublishedVideosPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className={cn(
+      "min-h-screen transition-colors duration-300",
+      theme === "dark" ? "bg-[#0a0a0f]" : "bg-gray-50"
+    )}>
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Link YouTube Videos to Extracts</h1>
-          <p className="text-gray-600">
-            Select a published YouTube video and link it to the extracts used in that video
+          <h1 className={cn(
+            "text-3xl font-bold mb-2",
+            theme === "dark" ? "text-white" : "text-gray-900"
+          )}>
+            Lier Vidéos YouTube aux Extraits
+          </h1>
+          <p className={cn(
+            theme === "dark" ? "text-gray-400" : "text-gray-600"
+          )}>
+            Sélectionnez une vidéo YouTube publiée et liez-la aux extraits utilisés
           </p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left Column - YouTube Videos */}
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <h2 className="text-lg font-bold text-gray-900 mb-4">YouTube Videos</h2>
+            <div className={cn(
+              "rounded-2xl border-2 p-6",
+              theme === "dark"
+                ? "bg-[#12121a] border-gray-800"
+                : "bg-white border-gray-200"
+            )}>
+              <h2 className={cn(
+                "text-lg font-bold mb-4",
+                theme === "dark" ? "text-white" : "text-gray-900"
+              )}>
+                Vidéos YouTube
+              </h2>
 
               {ytLoading ? (
                 <div className="flex justify-center items-center py-12">
-                  <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+                  <div className="w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
                 </div>
               ) : (
                 <div className="space-y-3 max-h-[calc(100vh-300px)] overflow-y-auto pr-2">
@@ -252,23 +286,35 @@ const PublishedVideosPage: React.FC = () => {
                     <div
                       key={video.id}
                       onClick={() => handleVideoSelect(video)}
-                      className={`cursor-pointer rounded-lg border-2 overflow-hidden transition-all ${
+                      className={cn(
+                        "cursor-pointer rounded-xl border-2 overflow-hidden transition-all",
                         selectedVideo?.id === video.id
-                          ? 'border-indigo-600 ring-2 ring-indigo-200'
-                          : 'border-gray-200 hover:border-indigo-300'
-                      }`}
+                          ? "border-purple-500 ring-2 ring-purple-500/30"
+                          : theme === "dark"
+                            ? "border-gray-800 hover:border-purple-500/50"
+                            : "border-gray-200 hover:border-purple-300"
+                      )}
                     >
                       <img
                         src={video.thumbnail}
                         alt={video.title}
                         className="w-full h-32 object-cover"
                       />
-                      <div className="p-3">
-                        <h3 className="text-sm font-semibold text-gray-900 line-clamp-2 mb-2">
+                      <div className={cn(
+                        "p-3",
+                        theme === "dark" ? "bg-[#12121a]" : "bg-white"
+                      )}>
+                        <h3 className={cn(
+                          "text-sm font-semibold line-clamp-2 mb-2",
+                          theme === "dark" ? "text-white" : "text-gray-900"
+                        )}>
                           {video.title}
                         </h3>
-                        <div className="flex items-center gap-3 text-xs text-gray-500">
-                          <span>{formatNumber(video.viewCount)} views</span>
+                        <div className={cn(
+                          "flex items-center gap-3 text-xs",
+                          theme === "dark" ? "text-gray-500" : "text-gray-500"
+                        )}>
+                          <span>{formatNumber(video.viewCount)} vues</span>
                           <span>{video.duration}</span>
                         </div>
                       </div>
@@ -284,19 +330,37 @@ const PublishedVideosPage: React.FC = () => {
             {selectedVideo ? (
               <>
                 {/* Video Details */}
-                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <div className={cn(
+                  "rounded-2xl border-2 p-6",
+                  theme === "dark"
+                    ? "bg-[#12121a] border-gray-800"
+                    : "bg-white border-gray-200"
+                )}>
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex-1">
-                      <h2 className="text-xl font-bold text-gray-900 mb-2">{selectedVideo.title}</h2>
-                      <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
-                        <span>{formatNumber(selectedVideo.viewCount)} views</span>
+                      <h2 className={cn(
+                        "text-xl font-bold mb-2",
+                        theme === "dark" ? "text-white" : "text-gray-900"
+                      )}>
+                        {selectedVideo.title}
+                      </h2>
+                      <div className={cn(
+                        "flex items-center gap-4 text-sm mb-3",
+                        theme === "dark" ? "text-gray-400" : "text-gray-600"
+                      )}>
+                        <span>{formatNumber(selectedVideo.viewCount)} vues</span>
                         <span>{formatNumber(selectedVideo.likeCount)} likes</span>
                         <span>{selectedVideo.duration}</span>
                       </div>
                       {publishedVideo && !isLinkingMode && (
                         <div className="flex items-center gap-2 mb-3">
-                          <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
-                            Linked to {publishedVideo.extractIds.length} extract{publishedVideo.extractIds.length !== 1 ? 's' : ''}
+                          <span className={cn(
+                            "px-3 py-1 rounded-full text-xs font-medium",
+                            theme === "dark"
+                              ? "bg-green-500/20 text-green-400"
+                              : "bg-green-100 text-green-700"
+                          )}>
+                            Lié à {publishedVideo.extractIds.length} extrait{publishedVideo.extractIds.length !== 1 ? 's' : ''}
                           </span>
                         </div>
                       )}
@@ -308,25 +372,30 @@ const PublishedVideosPage: React.FC = () => {
                       <>
                         <Button
                           onClick={handleCancelLinking}
-                          className="flex items-center gap-2 px-4 py-2 bg-gray-200 text-gray-700 hover:bg-gray-300 rounded-lg font-medium transition-all"
+                          className={cn(
+                            "flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all",
+                            theme === "dark"
+                              ? "bg-gray-800 text-gray-300 hover:bg-gray-700"
+                              : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                          )}
                         >
-                          <CloseCircle size={20} variant="Bulk" color="#374151" />
-                          Cancel
+                          <CloseCircle size={20} variant="Bulk" color={theme === "dark" ? "#d1d5db" : "#374151"} />
+                          Annuler
                         </Button>
                         <Button
                           onClick={handleSaveLink}
                           disabled={linking || updating || selectedExtracts.length === 0}
-                          className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white hover:bg-green-700 rounded-lg font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white hover:from-green-400 hover:to-emerald-400 rounded-lg font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           {linking || updating ? (
                             <>
                               <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                              Saving...
+                              Sauvegarde...
                             </>
                           ) : (
                             <>
                               <TickCircle size={20} variant="Bulk" color="#FFFFFF" />
-                              Save ({selectedExtracts.length})
+                              Sauvegarder ({selectedExtracts.length})
                             </>
                           )}
                         </Button>
@@ -336,18 +405,23 @@ const PublishedVideosPage: React.FC = () => {
                         {publishedVideo && (
                           <Button
                             onClick={() => handleDeleteClick(publishedVideo.id, selectedVideo.title)}
-                            className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white hover:bg-red-700 rounded-lg font-medium transition-all"
+                            className={cn(
+                              "flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all",
+                              theme === "dark"
+                                ? "bg-red-500/20 text-red-400 hover:bg-red-500/30"
+                                : "bg-red-600 text-white hover:bg-red-700"
+                            )}
                           >
-                            <Trash size={20} variant="Bulk" color="#FFFFFF" />
-                            Remove Link
+                            <Trash size={20} variant="Bulk" color={theme === "dark" ? "#f87171" : "#FFFFFF"} />
+                            Supprimer le lien
                           </Button>
                         )}
                         <Button
                           onClick={handleStartLinking}
-                          className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white hover:bg-indigo-700 rounded-lg font-medium transition-all"
+                          className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500 to-cyan-500 text-white hover:from-purple-400 hover:to-cyan-400 rounded-lg font-medium transition-all"
                         >
                           <Add size={20} variant="Bulk" color="#FFFFFF" />
-                          {publishedVideo ? 'Update Extracts' : 'Link Extracts'}
+                          {publishedVideo ? 'Modifier les extraits' : 'Lier des extraits'}
                         </Button>
                       </>
                     )}
@@ -356,32 +430,51 @@ const PublishedVideosPage: React.FC = () => {
 
                 {/* Linked Extracts Display */}
                 {publishedVideo && !isLinkingMode && publishedVideo.extracts && publishedVideo.extracts.length > 0 && (
-                  <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                    <h2 className="text-lg font-bold text-gray-900 mb-4">
-                      Linked Extracts ({publishedVideo.extracts.length})
+                  <div className={cn(
+                    "rounded-2xl border-2 p-6",
+                    theme === "dark"
+                      ? "bg-[#12121a] border-gray-800"
+                      : "bg-white border-gray-200"
+                  )}>
+                    <h2 className={cn(
+                      "text-lg font-bold mb-4",
+                      theme === "dark" ? "text-white" : "text-gray-900"
+                    )}>
+                      Extraits liés ({publishedVideo.extracts.length})
                     </h2>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[calc(100vh-500px)] overflow-y-auto pr-2">
                       {publishedVideo.extracts.map((extract) => (
                         <div
                           key={extract.id}
-                          className="border-2 border-green-200 rounded-lg p-4 bg-green-50"
+                          className={cn(
+                            "border-2 rounded-xl p-4",
+                            theme === "dark"
+                              ? "border-green-500/30 bg-green-500/10"
+                              : "border-green-200 bg-green-50"
+                          )}
                         >
                           {/* Linked Badge */}
                           <div className="flex items-center justify-between mb-3">
                             <span className="px-2 py-1 bg-green-600 text-white rounded text-xs font-medium flex items-center gap-1">
                               <TickCircle size={12} variant="Bold" color="#FFFFFF" />
-                              Linked
+                              Lié
                             </span>
                           </div>
 
                           {/* Extract Info */}
                           <div className="mb-2">
-                            <span className="text-xs font-semibold text-gray-900">
+                            <span className={cn(
+                              "text-xs font-semibold",
+                              theme === "dark" ? "text-white" : "text-gray-900"
+                            )}>
                               {extract.animeTitle}
                             </span>
                             {extract.episode && (
-                              <span className="text-xs text-gray-500 ml-2">
+                              <span className={cn(
+                                "text-xs ml-2",
+                                theme === "dark" ? "text-gray-500" : "text-gray-500"
+                              )}>
                                 Ep. {extract.episode}
                               </span>
                             )}
@@ -396,7 +489,10 @@ const PublishedVideosPage: React.FC = () => {
                             </div>
                           )}
 
-                          <p className="text-xs text-gray-600 italic line-clamp-3">
+                          <p className={cn(
+                            "text-xs italic line-clamp-3",
+                            theme === "dark" ? "text-gray-400" : "text-gray-600"
+                          )}>
                             "{extract.text}"
                           </p>
                         </div>
@@ -407,14 +503,22 @@ const PublishedVideosPage: React.FC = () => {
 
                 {/* Extracts Selection */}
                 {isLinkingMode && (
-                  <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                    <h2 className="text-lg font-bold text-gray-900 mb-4">
-                      Select Extracts ({selectedExtracts.length} selected)
+                  <div className={cn(
+                    "rounded-2xl border-2 p-6",
+                    theme === "dark"
+                      ? "bg-[#12121a] border-gray-800"
+                      : "bg-white border-gray-200"
+                  )}>
+                    <h2 className={cn(
+                      "text-lg font-bold mb-4",
+                      theme === "dark" ? "text-white" : "text-gray-900"
+                    )}>
+                      Sélectionner les extraits ({selectedExtracts.length} sélectionné{selectedExtracts.length !== 1 ? 's' : ''})
                     </h2>
 
                     {extractsLoading ? (
                       <div className="flex justify-center items-center py-12">
-                        <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+                        <div className="w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
                       </div>
                     ) : (
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[calc(100vh-500px)] overflow-y-auto pr-2">
@@ -427,48 +531,68 @@ const PublishedVideosPage: React.FC = () => {
                             <div
                               key={extract.id}
                               onClick={() => !isDisabled && toggleExtractSelection(extract.id, isUsed)}
-                              className={`border-2 rounded-lg p-4 transition-all ${
-                                !isDisabled ? 'cursor-pointer' : 'cursor-not-allowed opacity-50'
-                              } ${
+                              className={cn(
+                                "border-2 rounded-xl p-4 transition-all",
+                                !isDisabled ? 'cursor-pointer' : 'cursor-not-allowed opacity-50',
                                 isSelected
-                                  ? 'border-indigo-600 ring-2 ring-indigo-200 bg-indigo-50'
-                                  : 'border-gray-200 hover:border-indigo-300 bg-white'
-                              }`}
+                                  ? "border-purple-500 ring-2 ring-purple-500/30"
+                                  : theme === "dark"
+                                    ? "border-gray-800 hover:border-purple-500/50"
+                                    : "border-gray-200 hover:border-purple-300",
+                                isSelected
+                                  ? theme === "dark" ? "bg-purple-500/10" : "bg-purple-50"
+                                  : theme === "dark" ? "bg-[#12121a]" : "bg-white"
+                              )}
                             >
                               {/* Selection Indicator */}
                               <div className="flex items-center justify-between mb-3">
                                 <div className="flex items-center gap-2">
-                                  <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
+                                  <div className={cn(
+                                    "w-6 h-6 rounded-full border-2 flex items-center justify-center",
                                     isSelected
-                                      ? 'bg-indigo-600 border-indigo-600'
+                                      ? "bg-purple-600 border-purple-600"
                                       : isUsed
-                                      ? 'border-gray-400 bg-gray-200'
-                                      : 'border-gray-300'
-                                  }`}>
+                                        ? theme === "dark" ? "border-gray-600 bg-gray-700" : "border-gray-400 bg-gray-200"
+                                        : theme === "dark" ? "border-gray-600" : "border-gray-300"
+                                  )}>
                                     {isSelected && (
                                       <TickCircle size={16} variant="Bold" color="#FFFFFF" />
                                     )}
                                   </div>
-                                  <span className={`text-xs font-medium ${
-                                    isSelected ? 'text-indigo-600' : isUsed ? 'text-gray-500' : 'text-gray-500'
-                                  }`}>
-                                    {isSelected ? 'Selected' : isUsed ? 'Already used' : 'Click to select'}
+                                  <span className={cn(
+                                    "text-xs font-medium",
+                                    isSelected
+                                      ? "text-purple-500"
+                                      : theme === "dark" ? "text-gray-500" : "text-gray-500"
+                                  )}>
+                                    {isSelected ? 'Sélectionné' : isUsed ? 'Déjà utilisé' : 'Cliquer pour sélectionner'}
                                   </span>
                                 </div>
                                 {isUsed && (
-                                  <span className="px-2 py-1 bg-orange-100 text-orange-700 rounded text-xs font-medium">
-                                    In use
+                                  <span className={cn(
+                                    "px-2 py-1 rounded text-xs font-medium",
+                                    theme === "dark"
+                                      ? "bg-orange-500/20 text-orange-400"
+                                      : "bg-orange-100 text-orange-700"
+                                  )}>
+                                    En cours
                                   </span>
                                 )}
                               </div>
 
                               {/* Extract Info */}
                               <div className="mb-2">
-                                <span className="text-xs font-semibold text-gray-900">
+                                <span className={cn(
+                                  "text-xs font-semibold",
+                                  theme === "dark" ? "text-white" : "text-gray-900"
+                                )}>
                                   {extract.animeTitle}
                                 </span>
                                 {extract.episode && (
-                                  <span className="text-xs text-gray-500 ml-2">
+                                  <span className={cn(
+                                    "text-xs ml-2",
+                                    theme === "dark" ? "text-gray-500" : "text-gray-500"
+                                  )}>
                                     Ep. {extract.episode}
                                   </span>
                                 )}
@@ -483,7 +607,10 @@ const PublishedVideosPage: React.FC = () => {
                                 </div>
                               )}
 
-                              <p className="text-xs text-gray-600 italic line-clamp-3">
+                              <p className={cn(
+                                "text-xs italic line-clamp-3",
+                                theme === "dark" ? "text-gray-400" : "text-gray-600"
+                              )}>
                                 "{extract.text}"
                               </p>
                             </div>
@@ -495,13 +622,28 @@ const PublishedVideosPage: React.FC = () => {
                 )}
               </>
             ) : (
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
-                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Eye size={32} color="#9CA3AF" />
+              <div className={cn(
+                "rounded-2xl border-2 p-12 text-center",
+                theme === "dark"
+                  ? "bg-[#12121a] border-gray-800"
+                  : "bg-white border-gray-200"
+              )}>
+                <div className={cn(
+                  "w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4",
+                  theme === "dark" ? "bg-gray-800" : "bg-gray-100"
+                )}>
+                  <Eye size={32} color={theme === "dark" ? "#6b7280" : "#9CA3AF"} />
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Select a video</h3>
-                <p className="text-gray-600">
-                  Choose a YouTube video from the left to link it with extracts
+                <h3 className={cn(
+                  "text-lg font-semibold mb-2",
+                  theme === "dark" ? "text-white" : "text-gray-900"
+                )}>
+                  Sélectionnez une vidéo
+                </h3>
+                <p className={cn(
+                  theme === "dark" ? "text-gray-400" : "text-gray-600"
+                )}>
+                  Choisissez une vidéo YouTube à gauche pour la lier avec des extraits
                 </p>
               </div>
             )}
@@ -517,11 +659,11 @@ const PublishedVideosPage: React.FC = () => {
           setPublishedVideoToDelete(null);
         }}
         onConfirm={handleConfirmDelete}
-        title="Remove Video Link"
-        message={`Are you sure you want to remove the link for "${publishedVideoToDelete?.title}"? This will free up the linked extracts but will not delete the YouTube video.`}
+        title="Supprimer le lien vidéo"
+        message={`Êtes-vous sûr de vouloir supprimer le lien pour "${publishedVideoToDelete?.title}" ? Cela libérera les extraits liés mais ne supprimera pas la vidéo YouTube.`}
         type="warning"
-        confirmText="Remove Link"
-        cancelText="Cancel"
+        confirmText="Supprimer le lien"
+        cancelText="Annuler"
         loading={deleting}
       />
     </div>

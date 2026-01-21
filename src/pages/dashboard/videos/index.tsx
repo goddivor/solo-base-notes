@@ -7,6 +7,8 @@ import { VideoPlay, Trash, MusicCircle, Calendar, TickCircle } from 'iconsax-rea
 import Button from '../../../components/actions/button';
 import ActionConfirmationModal from '../../../components/modals/ActionConfirmationModal';
 import { useToast } from '../../../context/toast-context';
+import { useTheme } from '../../../context/theme-context';
+import { cn } from '../../../lib/utils';
 
 interface VideoSegment {
   extractId: string;
@@ -52,6 +54,7 @@ interface Video {
 const VideosPage: React.FC = () => {
   const navigate = useNavigate();
   const toast = useToast();
+  const { theme } = useTheme();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [videoToDelete, setVideoToDelete] = useState<{ id: string; title: string } | null>(null);
   const [showPublishModal, setShowPublishModal] = useState(false);
@@ -124,41 +127,65 @@ const VideosPage: React.FC = () => {
   const videos: Video[] = data?.videos || [];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className={cn(
+      "min-h-screen transition-colors duration-300",
+      theme === "dark" ? "bg-[#0a0a0f]" : "bg-gray-50"
+    )}>
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">My Videos</h1>
-          <p className="text-gray-600">
-            All your saved video projects
+          <h1 className={cn(
+            "text-3xl font-bold mb-2",
+            theme === "dark" ? "text-white" : "text-gray-900"
+          )}>
+            Mes Vidéos
+          </h1>
+          <p className={cn(
+            theme === "dark" ? "text-gray-400" : "text-gray-600"
+          )}>
+            Tous vos projets vidéo sauvegardés
           </p>
         </div>
 
         {/* Loading State */}
         {loading && (
           <div className="flex justify-center items-center py-12">
-            <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+            <div className="w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
           </div>
         )}
 
         {/* Empty State */}
         {!loading && videos.length === 0 && (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
+          <div className={cn(
+            "rounded-2xl border-2 p-12 text-center",
+            theme === "dark"
+              ? "bg-[#12121a] border-gray-800"
+              : "bg-white border-gray-200"
+          )}>
             <div className="max-w-md mx-auto flex flex-col items-center">
-              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                <VideoPlay size={32} color="#9CA3AF" />
+              <div className={cn(
+                "w-16 h-16 rounded-full flex items-center justify-center mb-4",
+                theme === "dark" ? "bg-gray-800" : "bg-gray-100"
+              )}>
+                <VideoPlay size={32} color={theme === "dark" ? "#6b7280" : "#9CA3AF"} />
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                No videos yet
+              <h3 className={cn(
+                "text-lg font-semibold mb-2",
+                theme === "dark" ? "text-white" : "text-gray-900"
+              )}>
+                Aucune vidéo
               </h3>
-              <p className="text-gray-600 mb-6">
-                Create your first video from your extracts collection
+              <p className={cn(
+                "mb-6",
+                theme === "dark" ? "text-gray-400" : "text-gray-600"
+              )}>
+                Créez votre première vidéo à partir de vos extraits
               </p>
               <Button
                 onClick={() => navigate('/dashboard/extracts')}
-                className="px-6 py-3 bg-indigo-600 text-white hover:bg-indigo-700 rounded-lg font-medium transition-all"
+                className="px-6 py-3 bg-gradient-to-r from-purple-500 to-cyan-500 text-white hover:from-purple-400 hover:to-cyan-400 rounded-xl font-medium transition-all"
               >
-                Go to Extracts
+                Aller aux Extraits
               </Button>
             </div>
           </div>
@@ -167,18 +194,26 @@ const VideosPage: React.FC = () => {
         {/* Videos Grid */}
         {!loading && videos.length > 0 && (
           <div>
-            <div className="mb-4 text-sm text-gray-600">
-              {videos.length} video{videos.length > 1 ? 's' : ''} found
+            <div className={cn(
+              "mb-4 text-sm",
+              theme === "dark" ? "text-gray-400" : "text-gray-600"
+            )}>
+              {videos.length} vidéo{videos.length > 1 ? 's' : ''} trouvée{videos.length > 1 ? 's' : ''}
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
               {videos.map((video) => (
                 <div
                   key={video.id}
                   onClick={() => navigate(`/dashboard/videos/${video.id}`)}
-                  className="bg-white rounded-xl shadow-sm border-2 border-gray-200 overflow-hidden transition-all hover:shadow-lg hover:border-indigo-300 cursor-pointer"
+                  className={cn(
+                    "rounded-2xl border-2 overflow-hidden transition-all cursor-pointer",
+                    theme === "dark"
+                      ? "bg-[#12121a] border-gray-800 hover:border-purple-500/50"
+                      : "bg-white border-gray-200 hover:shadow-lg hover:border-purple-300"
+                  )}
                 >
                   {/* Header with Gradient */}
-                  <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-4">
+                  <div className="bg-gradient-to-r from-purple-600 to-cyan-600 p-4">
                     <div className="flex items-start gap-3">
                       <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center flex-shrink-0">
                         <VideoPlay size={24} variant="Bold" color="#FFFFFF" />
@@ -191,7 +226,7 @@ const VideosPage: React.FC = () => {
                           {video.isPublished && (
                             <span className="flex-shrink-0 px-2 py-1 bg-green-500 text-white rounded text-xs font-medium flex items-center gap-1">
                               <TickCircle size={12} variant="Bold" color="#FFFFFF" />
-                              Published
+                              Publié
                             </span>
                           )}
                         </div>
@@ -205,20 +240,26 @@ const VideosPage: React.FC = () => {
 
                   <div className="p-4">
                     {/* Description */}
-                    <p className="text-sm text-gray-600 line-clamp-3 mb-4">
+                    <p className={cn(
+                      "text-sm line-clamp-3 mb-4",
+                      theme === "dark" ? "text-gray-400" : "text-gray-600"
+                    )}>
                       {video.description}
                     </p>
 
                     {/* Stats */}
-                    <div className="flex items-center gap-4 mb-4 text-xs text-gray-500">
+                    <div className={cn(
+                      "flex items-center gap-4 mb-4 text-xs",
+                      theme === "dark" ? "text-gray-500" : "text-gray-500"
+                    )}>
                       <div className="flex items-center gap-1">
-                        <VideoPlay size={14} color="#6B7280" />
+                        <VideoPlay size={14} color={theme === "dark" ? "#6b7280" : "#6B7280"} />
                         <span>{video.segments.length} segment{video.segments.length !== 1 ? 's' : ''}</span>
                       </div>
                       {video.musicTracks.length > 0 && (
                         <div className="flex items-center gap-1">
-                          <MusicCircle size={14} color="#6B7280" />
-                          <span>{video.musicTracks.length} track{video.musicTracks.length !== 1 ? 's' : ''}</span>
+                          <MusicCircle size={14} color={theme === "dark" ? "#6b7280" : "#6B7280"} />
+                          <span>{video.musicTracks.length} piste{video.musicTracks.length !== 1 ? 's' : ''}</span>
                         </div>
                       )}
                     </div>
@@ -229,13 +270,23 @@ const VideosPage: React.FC = () => {
                         {video.tags.split(',').slice(0, 4).map((tag, index) => (
                           <span
                             key={index}
-                            className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs"
+                            className={cn(
+                              "px-2 py-1 rounded text-xs",
+                              theme === "dark"
+                                ? "bg-gray-800 text-gray-400"
+                                : "bg-gray-100 text-gray-700"
+                            )}
                           >
                             {tag.trim()}
                           </span>
                         ))}
                         {video.tags.split(',').length > 4 && (
-                          <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs">
+                          <span className={cn(
+                            "px-2 py-1 rounded text-xs",
+                            theme === "dark"
+                              ? "bg-gray-800 text-gray-500"
+                              : "bg-gray-100 text-gray-600"
+                          )}>
                             +{video.tags.split(',').length - 4}
                           </span>
                         )}
@@ -243,7 +294,10 @@ const VideosPage: React.FC = () => {
                     </div>
 
                     {/* Actions */}
-                    <div className="pt-4 border-t border-gray-200">
+                    <div className={cn(
+                      "pt-4 border-t",
+                      theme === "dark" ? "border-gray-800" : "border-gray-200"
+                    )}>
                       <div className="flex gap-2">
                         {!video.isPublished && (
                           <button
@@ -251,10 +305,15 @@ const VideosPage: React.FC = () => {
                               e.stopPropagation();
                               handlePublishClick(video.id, video.title);
                             }}
-                            className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-green-600 bg-green-50 hover:bg-green-100 rounded-lg transition-colors"
+                            className={cn(
+                              "flex-1 flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium rounded-lg transition-colors",
+                              theme === "dark"
+                                ? "text-green-400 bg-green-500/10 hover:bg-green-500/20"
+                                : "text-green-600 bg-green-50 hover:bg-green-100"
+                            )}
                           >
-                            <TickCircle size={16} variant="Bulk" color="#10B981" />
-                            Publish
+                            <TickCircle size={16} variant="Bulk" color={theme === "dark" ? "#4ade80" : "#10B981"} />
+                            Publier
                           </button>
                         )}
                         <button
@@ -262,12 +321,16 @@ const VideosPage: React.FC = () => {
                             e.stopPropagation();
                             handleDeleteClick(video.id, video.title);
                           }}
-                          className={`flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors ${
+                          className={cn(
+                            "flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium rounded-lg transition-colors",
+                            theme === "dark"
+                              ? "text-red-400 bg-red-500/10 hover:bg-red-500/20"
+                              : "text-red-600 bg-red-50 hover:bg-red-100",
                             video.isPublished ? 'w-full' : 'flex-1'
-                          }`}
+                          )}
                         >
-                          <Trash size={16} variant="Bulk" color="#DC2626" />
-                          Delete
+                          <Trash size={16} variant="Bulk" color={theme === "dark" ? "#f87171" : "#DC2626"} />
+                          Supprimer
                         </button>
                       </div>
                     </div>
@@ -281,30 +344,57 @@ const VideosPage: React.FC = () => {
 
       {/* Publish Modal */}
       {showPublishModal && (
-        <div className="fixed inset-0 bg-black/20 bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full">
-            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4">
-              <h2 className="text-xl font-bold text-gray-900">Publish Video</h2>
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className={cn(
+            "rounded-2xl shadow-2xl max-w-md w-full",
+            theme === "dark" ? "bg-[#12121a]" : "bg-white"
+          )}>
+            <div className={cn(
+              "sticky top-0 border-b px-6 py-4",
+              theme === "dark"
+                ? "bg-[#12121a] border-gray-800"
+                : "bg-white border-gray-200"
+            )}>
+              <h2 className={cn(
+                "text-xl font-bold",
+                theme === "dark" ? "text-white" : "text-gray-900"
+              )}>
+                Publier la Vidéo
+              </h2>
             </div>
 
             <div className="p-6 space-y-4">
-              <p className="text-sm text-gray-600 mb-4">
-                Enter the YouTube video ID to mark "{videoToPublish?.title}" as published.
+              <p className={cn(
+                "text-sm mb-4",
+                theme === "dark" ? "text-gray-400" : "text-gray-600"
+              )}>
+                Entrez l'ID de la vidéo YouTube pour marquer "{videoToPublish?.title}" comme publiée.
               </p>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className={cn(
+                  "block text-sm font-medium mb-2",
+                  theme === "dark" ? "text-gray-300" : "text-gray-700"
+                )}>
                   YouTube Video ID *
                 </label>
                 <input
                   type="text"
                   value={youtubeVideoId}
                   onChange={(e) => setYoutubeVideoId(e.target.value)}
-                  placeholder="e.g., dQw4w9WgXcQ"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  placeholder="ex: dQw4w9WgXcQ"
+                  className={cn(
+                    "w-full px-4 py-2 rounded-lg border focus:outline-none focus:border-purple-500",
+                    theme === "dark"
+                      ? "bg-gray-900/50 border-gray-800 text-white placeholder-gray-500"
+                      : "bg-white border-gray-300 text-gray-900 placeholder-gray-400"
+                  )}
                 />
-                <p className="text-xs text-gray-500 mt-1">
-                  The video ID can be found in the YouTube URL: youtube.com/watch?v=<strong>VIDEO_ID</strong>
+                <p className={cn(
+                  "text-xs mt-1",
+                  theme === "dark" ? "text-gray-500" : "text-gray-500"
+                )}>
+                  L'ID se trouve dans l'URL YouTube: youtube.com/watch?v=<strong>VIDEO_ID</strong>
                 </p>
               </div>
 
@@ -315,16 +405,21 @@ const VideosPage: React.FC = () => {
                     setVideoToPublish(null);
                     setYoutubeVideoId('');
                   }}
-                  className="flex-1 px-4 py-3 border-2 border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg font-medium transition-all"
+                  className={cn(
+                    "flex-1 px-4 py-3 rounded-xl font-medium transition-all",
+                    theme === "dark"
+                      ? "border-2 border-gray-700 text-gray-300 hover:bg-gray-800"
+                      : "border-2 border-gray-300 text-gray-700 hover:bg-gray-50"
+                  )}
                 >
-                  Cancel
+                  Annuler
                 </Button>
                 <Button
                   onClick={handleConfirmPublish}
                   disabled={publishing || !youtubeVideoId.trim()}
-                  className="flex-1 px-4 py-3 bg-green-600 text-white hover:bg-green-700 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                  className="flex-1 px-4 py-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white hover:from-green-400 hover:to-emerald-400 rounded-xl font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                 >
-                  {publishing ? 'Publishing...' : 'Publish'}
+                  {publishing ? 'Publication...' : 'Publier'}
                 </Button>
               </div>
             </div>
@@ -340,11 +435,11 @@ const VideosPage: React.FC = () => {
           setVideoToDelete(null);
         }}
         onConfirm={handleConfirmDelete}
-        title="Delete Video"
-        message={`Are you sure you want to delete "${videoToDelete?.title}"? This action cannot be undone.`}
+        title="Supprimer la Vidéo"
+        message={`Êtes-vous sûr de vouloir supprimer "${videoToDelete?.title}" ? Cette action est irréversible.`}
         type="danger"
-        confirmText="Delete"
-        cancelText="Cancel"
+        confirmText="Supprimer"
+        cancelText="Annuler"
         loading={deleting}
       />
     </div>

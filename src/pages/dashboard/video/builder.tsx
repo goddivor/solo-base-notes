@@ -10,6 +10,8 @@ import { Textarea } from '@/components/forms/Textarea';
 import SpotifyTrackSearch from '../../../components/SpotifyTrackSearch';
 import ActionConfirmationModal from '../../../components/modals/ActionConfirmationModal';
 import { useToast } from '../../../context/toast-context';
+import { useTheme } from '../../../context/theme-context';
+import { cn } from '../../../lib/utils';
 
 interface Character {
   malId: number;
@@ -73,6 +75,7 @@ const VideoBuilder: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const toast = useToast();
+  const { theme } = useTheme();
   const extractIds = (location.state as { extractIds?: string[] })?.extractIds || [];
 
   const [videoTitle, setVideoTitle] = useState('');
@@ -93,12 +96,12 @@ const VideoBuilder: React.FC = () => {
   const [createVideo, { loading: saving }] = useMutation(CREATE_VIDEO, {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     onCompleted: (_data) => {
-      toast.success('Video saved!', 'Your video has been saved successfully');
+      toast.success('Vidéo sauvegardée !', 'Votre vidéo a été sauvegardée avec succès');
       navigate('/dashboard/videos');
     },
     onError: (error) => {
       console.error('Error saving video:', error);
-      toast.error('Failed to save video', error.message || 'Please try again');
+      toast.error('Échec de la sauvegarde', error.message || 'Veuillez réessayer');
     },
   });
 
@@ -108,12 +111,12 @@ const VideoBuilder: React.FC = () => {
   // Generate video title
   useEffect(() => {
     if (selectedExtracts.length > 0 && !userEditedTitle) {
-      const theme = selectedExtracts[0].theme;
+      const themeObj = selectedExtracts[0].theme;
       const animes = [...new Set(selectedExtracts.map((e) => e.animeTitle))];
 
-      if (theme) {
+      if (themeObj) {
         const animeTitles = animes.join(' x ');
-        const title = `${theme.name.toUpperCase()} !! - Citation VF ${animeTitles}`;
+        const title = `${themeObj.name.toUpperCase()} !! - Citation VF ${animeTitles}`;
         setVideoTitle(title);
       }
     }
@@ -148,14 +151,14 @@ const VideoBuilder: React.FC = () => {
   // Generate video tags
   useEffect(() => {
     if (selectedExtracts.length > 0 && !userEditedTags) {
-      const theme = selectedExtracts[0].theme;
+      const themeObj = selectedExtracts[0].theme;
       const animes = [...new Set(selectedExtracts.map((e) => e.animeTitle))];
 
       const tags = [
         'anime',
         'citation',
         'vf',
-        ...(theme ? [theme.name.toLowerCase()] : []),
+        ...(themeObj ? [themeObj.name.toLowerCase()] : []),
         ...animes.map((a) => a.toLowerCase().replace(/\s+/g, ''))
       ];
 
@@ -188,7 +191,6 @@ const VideoBuilder: React.FC = () => {
 
   const handleRemoveSegment = (segmentId: string) => {
     const filtered = videoSegments.filter((s) => s.id !== segmentId);
-    // Reorder
     const reordered = filtered.map((s, index) => ({ ...s, order: index }));
     setVideoSegments(reordered);
   };
@@ -203,7 +205,6 @@ const VideoBuilder: React.FC = () => {
     const newSegments = [...videoSegments];
     [newSegments[index], newSegments[newIndex]] = [newSegments[newIndex], newSegments[index]];
 
-    // Update orders
     const reordered = newSegments.map((s, i) => ({ ...s, order: i }));
     setVideoSegments(reordered);
   };
@@ -246,35 +247,32 @@ const VideoBuilder: React.FC = () => {
   };
 
   const handleSaveVideoClick = () => {
-    // Validation
     if (!videoTitle.trim()) {
-      setValidationError('Please enter a video title');
+      setValidationError('Veuillez entrer un titre pour la vidéo');
       setShowSaveModal(true);
       return;
     }
     if (!videoDescription.trim()) {
-      setValidationError('Please enter a video description');
+      setValidationError('Veuillez entrer une description pour la vidéo');
       setShowSaveModal(true);
       return;
     }
     if (!videoTags.trim()) {
-      setValidationError('Please enter video tags');
+      setValidationError('Veuillez entrer des tags pour la vidéo');
       setShowSaveModal(true);
       return;
     }
     if (videoSegments.length === 0) {
-      setValidationError('Please add at least one segment to the timeline');
+      setValidationError('Veuillez ajouter au moins un segment à la timeline');
       setShowSaveModal(true);
       return;
     }
 
-    // All validation passed, show confirmation modal
     setValidationError('');
     setShowSaveModal(true);
   };
 
   const handleConfirmSave = () => {
-    // Prepare input for GraphQL mutation
     const input = {
       title: videoTitle,
       description: videoDescription,
@@ -309,22 +307,33 @@ const VideoBuilder: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+      <div className={cn(
+        "min-h-screen flex items-center justify-center transition-colors duration-300",
+        theme === "dark" ? "bg-[#0a0a0f]" : "bg-gray-50"
+      )}>
+        <div className="w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
 
   if (selectedExtracts.length === 0) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className={cn(
+        "min-h-screen flex items-center justify-center transition-colors duration-300",
+        theme === "dark" ? "bg-[#0a0a0f]" : "bg-gray-50"
+      )}>
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">No extracts selected</h2>
+          <h2 className={cn(
+            "text-2xl font-bold mb-4",
+            theme === "dark" ? "text-white" : "text-gray-900"
+          )}>
+            Aucun extrait sélectionné
+          </h2>
           <Button
             onClick={() => navigate('/dashboard/extracts')}
-            className="px-6 py-3 bg-indigo-600 text-white hover:bg-indigo-700 rounded-lg font-medium transition-all"
+            className="px-6 py-3 bg-gradient-to-r from-purple-500 to-cyan-500 text-white hover:from-purple-400 hover:to-cyan-400 rounded-xl font-medium transition-all"
           >
-            Back to Extracts
+            Retour aux Extraits
           </Button>
         </div>
       </div>
@@ -332,38 +341,53 @@ const VideoBuilder: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className={cn(
+      "min-h-screen transition-colors duration-300",
+      theme === "dark" ? "bg-[#0a0a0f]" : "bg-gray-50"
+    )}>
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
           <button
             onClick={() => navigate('/dashboard/extracts')}
-            className="flex items-center gap-2 text-indigo-600 hover:text-indigo-700 mb-4 transition-colors"
+            className={cn(
+              "flex items-center gap-2 mb-4 transition-colors",
+              theme === "dark"
+                ? "text-purple-400 hover:text-purple-300"
+                : "text-purple-600 hover:text-purple-700"
+            )}
           >
-            <ArrowLeft size={20} variant="Outline" color="#4F46E5" />
-            <span className="text-sm font-medium">Back to Extracts</span>
+            <ArrowLeft size={20} variant="Outline" color={theme === "dark" ? "#a855f7" : "#9333ea"} />
+            <span className="text-sm font-medium">Retour aux Extraits</span>
           </button>
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">Build Your Video</h1>
-              <p className="text-gray-600">
-                Customize your video details and organize the extract segments
+              <h1 className={cn(
+                "text-3xl font-bold mb-2",
+                theme === "dark" ? "text-white" : "text-gray-900"
+              )}>
+                Construire votre Vidéo
+              </h1>
+              <p className={cn(
+                theme === "dark" ? "text-gray-400" : "text-gray-600"
+              )}>
+                Personnalisez les détails de votre vidéo et organisez les segments
               </p>
             </div>
             <Button
               onClick={handleSaveVideoClick}
               disabled={saving || videoSegments.length === 0}
-              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:from-indigo-700 hover:to-purple-700 rounded-lg font-medium transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-500 to-cyan-500 text-white hover:from-purple-400 hover:to-cyan-400 rounded-xl font-medium transition-all shadow-lg shadow-purple-500/25 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {saving ? (
                 <>
                   <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  Saving...
+                  Sauvegarde...
                 </>
               ) : (
                 <>
                   <DocumentUpload size={20} variant="Bold" color="#FFFFFF" />
-                  Save Video
+                  Sauvegarder
                 </>
               )}
             </Button>
@@ -374,34 +398,44 @@ const VideoBuilder: React.FC = () => {
           {/* Left Column - Video Details */}
           <div className="lg:col-span-2 space-y-6">
             {/* Video Information */}
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">Video Information</h2>
+            <div className={cn(
+              "p-6 rounded-2xl border-2",
+              theme === "dark"
+                ? "bg-[#12121a] border-gray-800"
+                : "bg-white border-gray-200"
+            )}>
+              <h2 className={cn(
+                "text-xl font-bold mb-4",
+                theme === "dark" ? "text-white" : "text-gray-900"
+              )}>
+                Informations Vidéo
+              </h2>
 
               <div className="space-y-4">
                 <Input
-                  label="Video Title *"
+                  label="Titre de la Vidéo *"
                   type="text"
                   value={videoTitle}
                   onChange={(e) => {
                     setVideoTitle(e.target.value);
                     setUserEditedTitle(true);
                   }}
-                  placeholder="Enter video title"
+                  placeholder="Entrez le titre de la vidéo"
                 />
 
                 <Textarea
-                  label="Video Description *"
+                  label="Description de la Vidéo *"
                   value={videoDescription}
                   onChange={(e) => {
                     setVideoDescription(e.target.value);
                     setUserEditedDescription(true);
                   }}
-                  placeholder="Enter video description"
+                  placeholder="Entrez la description de la vidéo"
                   rows={8}
                 />
 
                 <Input
-                  label="Tags (comma separated) *"
+                  label="Tags (séparés par des virgules) *"
                   type="text"
                   value={videoTags}
                   onChange={(e) => {
@@ -414,140 +448,219 @@ const VideoBuilder: React.FC = () => {
             </div>
 
             {/* Video Timeline */}
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+            <div className={cn(
+              "p-6 rounded-2xl border-2",
+              theme === "dark"
+                ? "bg-[#12121a] border-gray-800"
+                : "bg-white border-gray-200"
+            )}>
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <h2 className="text-xl font-bold text-gray-900">Video Timeline</h2>
-                  <p className="text-xs text-gray-500 mt-1">
-                    {videoSegments.length} segment{videoSegments.length !== 1 ? 's' : ''} in timeline
+                  <h2 className={cn(
+                    "text-xl font-bold",
+                    theme === "dark" ? "text-white" : "text-gray-900"
+                  )}>
+                    Timeline Vidéo
+                  </h2>
+                  <p className={cn(
+                    "text-xs mt-1",
+                    theme === "dark" ? "text-gray-500" : "text-gray-500"
+                  )}>
+                    {videoSegments.length} segment{videoSegments.length !== 1 ? 's' : ''} dans la timeline
                   </p>
                 </div>
               </div>
 
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
-                <p className="text-sm text-blue-800">
-                  <strong>💡 Tip:</strong> Use the arrow buttons (↑↓) to reorder segments, the pencil icon to edit text, and the trash icon to remove segments.
+              <div className={cn(
+                "rounded-xl p-3 mb-4 border",
+                theme === "dark"
+                  ? "bg-cyan-500/10 border-cyan-500/30"
+                  : "bg-blue-50 border-blue-200"
+              )}>
+                <p className={cn(
+                  "text-sm",
+                  theme === "dark" ? "text-cyan-400" : "text-blue-800"
+                )}>
+                  <strong>Astuce:</strong> Utilisez les flèches (↑↓) pour réorganiser, le crayon pour modifier et la corbeille pour supprimer.
                 </p>
               </div>
 
               {videoSegments.length === 0 ? (
-                <div className="text-center py-12 border-2 border-dashed border-gray-300 rounded-lg">
-                  <p className="text-gray-500 mb-2">No segments in timeline yet</p>
-                  <p className="text-sm text-gray-400">Click "Add to Timeline" on the right to add extracts</p>
+                <div className={cn(
+                  "text-center py-12 border-2 border-dashed rounded-xl",
+                  theme === "dark" ? "border-gray-700" : "border-gray-300"
+                )}>
+                  <p className={cn(
+                    "mb-2",
+                    theme === "dark" ? "text-gray-500" : "text-gray-500"
+                  )}>
+                    Aucun segment dans la timeline
+                  </p>
+                  <p className={cn(
+                    "text-sm",
+                    theme === "dark" ? "text-gray-600" : "text-gray-400"
+                  )}>
+                    Cliquez sur "Ajouter à la Timeline" à droite pour ajouter des extraits
+                  </p>
                 </div>
               ) : (
                 <div className="space-y-3">
-                {videoSegments.map((segment, index) => {
-                  const extract = selectedExtracts.find((e) => e.id === segment.extractId);
-                  const isEditing = editingSegmentId === segment.id;
+                  {videoSegments.map((segment, index) => {
+                    const extract = selectedExtracts.find((e) => e.id === segment.extractId);
+                    const isEditing = editingSegmentId === segment.id;
 
-                  return (
-                    <div
-                      key={segment.id}
-                      className={`border-2 rounded-lg p-4 transition-all ${
-                        isEditing
-                          ? 'bg-blue-50 border-blue-400'
-                          : 'bg-white border-gray-200 hover:border-indigo-300'
-                      }`}
-                    >
-                      <div className="flex items-start gap-3">
-                        {/* Position Number */}
-                        <div className="flex-shrink-0">
-                          <div className="w-10 h-10 bg-indigo-600 text-white rounded-lg flex items-center justify-center text-sm font-bold shadow">
-                            {index + 1}
+                    return (
+                      <div
+                        key={segment.id}
+                        className={cn(
+                          "border-2 rounded-xl p-4 transition-all",
+                          isEditing
+                            ? theme === "dark"
+                              ? "bg-purple-500/10 border-purple-500"
+                              : "bg-blue-50 border-blue-400"
+                            : theme === "dark"
+                              ? "bg-[#0a0a0f] border-gray-800 hover:border-gray-700"
+                              : "bg-white border-gray-200 hover:border-purple-300"
+                        )}
+                      >
+                        <div className="flex items-start gap-3">
+                          {/* Position Number */}
+                          <div className="flex-shrink-0">
+                            <div className="w-10 h-10 bg-gradient-to-r from-purple-600 to-cyan-600 text-white rounded-lg flex items-center justify-center text-sm font-bold shadow">
+                              {index + 1}
+                            </div>
                           </div>
-                        </div>
 
-                        {/* Content */}
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-2">
-                            <span className="text-xs font-medium text-gray-700">
-                              {extract?.animeTitle}
-                            </span>
-                            {extract?.episode && (
-                              <span className="text-xs text-gray-500">
-                                Ep. {extract.episode}
+                          {/* Content */}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className={cn(
+                                "text-xs font-medium",
+                                theme === "dark" ? "text-gray-300" : "text-gray-700"
+                              )}>
+                                {extract?.animeTitle}
                               </span>
+                              {extract?.episode && (
+                                <span className={cn(
+                                  "text-xs",
+                                  theme === "dark" ? "text-gray-500" : "text-gray-500"
+                                )}>
+                                  Ep. {extract.episode}
+                                </span>
+                              )}
+                            </div>
+
+                            {isEditing ? (
+                              <div className="space-y-3">
+                                <div>
+                                  <label className={cn(
+                                    "block text-xs font-medium mb-1",
+                                    theme === "dark" ? "text-gray-400" : "text-gray-700"
+                                  )}>
+                                    Modifier le texte du segment:
+                                  </label>
+                                  <Textarea
+                                    value={editingText}
+                                    onChange={(e) => setEditingText(e.target.value)}
+                                    rows={4}
+                                    className="text-sm"
+                                    placeholder="Entrez le texte pour ce segment..."
+                                  />
+                                </div>
+                                <div className="flex gap-2">
+                                  <Button
+                                    onClick={handleSaveSegmentEdit}
+                                    className="flex items-center gap-2 px-4 py-2 text-sm bg-green-600 text-white hover:bg-green-700 rounded-lg font-medium"
+                                  >
+                                    <TickCircle size={16} variant="Bold" color="#FFFFFF" />
+                                    Sauvegarder
+                                  </Button>
+                                  <Button
+                                    onClick={handleCancelEdit}
+                                    className={cn(
+                                      "px-4 py-2 text-sm rounded-lg font-medium",
+                                      theme === "dark"
+                                        ? "bg-gray-800 text-gray-300 hover:bg-gray-700"
+                                        : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                                    )}
+                                  >
+                                    Annuler
+                                  </Button>
+                                </div>
+                              </div>
+                            ) : (
+                              <p className={cn(
+                                "text-sm italic leading-relaxed",
+                                theme === "dark" ? "text-gray-300" : "text-gray-900"
+                              )}>
+                                "{segment.text}"
+                              </p>
                             )}
                           </div>
 
-                          {isEditing ? (
-                            <div className="space-y-3">
-                              <div>
-                                <label className="block text-xs font-medium text-gray-700 mb-1">
-                                  Edit segment text:
-                                </label>
-                                <Textarea
-                                  value={editingText}
-                                  onChange={(e) => setEditingText(e.target.value)}
-                                  rows={4}
-                                  className="text-sm"
-                                  placeholder="Enter the text for this segment..."
-                                />
-                              </div>
-                              <div className="flex gap-2">
-                                <Button
-                                  onClick={handleSaveSegmentEdit}
-                                  className="flex items-center gap-2 px-4 py-2 text-sm bg-green-600 text-white hover:bg-green-700 rounded-lg font-medium"
-                                >
-                                  <TickCircle size={16} variant="Bold" color="#FFFFFF" />
-                                  Save Changes
-                                </Button>
-                                <Button
-                                  onClick={handleCancelEdit}
-                                  className="px-4 py-2 text-sm bg-gray-200 text-gray-700 hover:bg-gray-300 rounded-lg font-medium"
-                                >
-                                  Cancel
-                                </Button>
-                              </div>
-                            </div>
-                          ) : (
-                            <p className="text-sm text-gray-900 italic leading-relaxed">
-                              "{segment.text}"
-                            </p>
-                          )}
-                        </div>
-
-                        {/* Action Buttons */}
-                        <div className="flex-shrink-0 flex flex-col gap-1">
-                          <button
-                            onClick={() => handleMoveSegment(segment.id, 'up')}
-                            disabled={index === 0}
-                            title="Move up"
-                            className="p-2 rounded-lg hover:bg-indigo-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                          >
-                            <ArrowUp size={20} color={index === 0 ? '#9CA3AF' : '#6366F1'} />
-                          </button>
-                          <button
-                            onClick={() => handleMoveSegment(segment.id, 'down')}
-                            disabled={index === videoSegments.length - 1}
-                            title="Move down"
-                            className="p-2 rounded-lg hover:bg-indigo-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                          >
-                            <ArrowDown size={20} color={index === videoSegments.length - 1 ? '#9CA3AF' : '#6366F1'} />
-                          </button>
-                          <div className="h-px bg-gray-300 my-1"></div>
-                          <button
-                            onClick={() => handleEditSegment(segment.id, segment.text)}
-                            disabled={isEditing}
-                            title="Edit text"
-                            className="p-2 rounded-lg hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                          >
-                            <Edit2 size={20} color={isEditing ? '#9CA3AF' : '#3B82F6'} />
-                          </button>
-                          <button
-                            onClick={() => handleRemoveSegment(segment.id)}
-                            title="Remove segment"
-                            className="p-2 rounded-lg hover:bg-red-50 transition-colors"
-                          >
-                            <Trash size={20} color="#DC2626" />
-                          </button>
+                          {/* Action Buttons */}
+                          <div className="flex-shrink-0 flex flex-col gap-1">
+                            <button
+                              onClick={() => handleMoveSegment(segment.id, 'up')}
+                              disabled={index === 0}
+                              title="Monter"
+                              className={cn(
+                                "p-2 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed",
+                                theme === "dark"
+                                  ? "hover:bg-gray-800"
+                                  : "hover:bg-purple-50"
+                              )}
+                            >
+                              <ArrowUp size={20} color={index === 0 ? '#6b7280' : '#a855f7'} />
+                            </button>
+                            <button
+                              onClick={() => handleMoveSegment(segment.id, 'down')}
+                              disabled={index === videoSegments.length - 1}
+                              title="Descendre"
+                              className={cn(
+                                "p-2 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed",
+                                theme === "dark"
+                                  ? "hover:bg-gray-800"
+                                  : "hover:bg-purple-50"
+                              )}
+                            >
+                              <ArrowDown size={20} color={index === videoSegments.length - 1 ? '#6b7280' : '#a855f7'} />
+                            </button>
+                            <div className={cn(
+                              "h-px my-1",
+                              theme === "dark" ? "bg-gray-700" : "bg-gray-300"
+                            )}></div>
+                            <button
+                              onClick={() => handleEditSegment(segment.id, segment.text)}
+                              disabled={isEditing}
+                              title="Modifier"
+                              className={cn(
+                                "p-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed",
+                                theme === "dark"
+                                  ? "hover:bg-gray-800"
+                                  : "hover:bg-blue-50"
+                              )}
+                            >
+                              <Edit2 size={20} color={isEditing ? '#6b7280' : '#3B82F6'} />
+                            </button>
+                            <button
+                              onClick={() => handleRemoveSegment(segment.id)}
+                              title="Supprimer"
+                              className={cn(
+                                "p-2 rounded-lg transition-colors",
+                                theme === "dark"
+                                  ? "hover:bg-red-500/20"
+                                  : "hover:bg-red-50"
+                              )}
+                            >
+                              <Trash size={20} color="#DC2626" />
+                            </button>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  );
-                })}
-              </div>
+                    );
+                  })}
+                </div>
               )}
             </div>
 
@@ -559,15 +672,31 @@ const VideoBuilder: React.FC = () => {
 
             {/* Selected Music Display */}
             {selectedTracks.length > 0 && (
-              <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+              <div className={cn(
+                "p-6 rounded-2xl border-2",
+                theme === "dark"
+                  ? "bg-[#12121a] border-gray-800"
+                  : "bg-white border-gray-200"
+              )}>
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                  <div className={cn(
+                    "w-10 h-10 rounded-lg flex items-center justify-center",
+                    theme === "dark" ? "bg-green-500/20" : "bg-green-100"
+                  )}>
                     <MusicCircle size={24} variant="Bulk" color="#10B981" />
                   </div>
                   <div>
-                    <h2 className="text-xl font-bold text-gray-900">Selected Music</h2>
-                    <p className="text-sm text-gray-500">
-                      {selectedTracks.length} track{selectedTracks.length !== 1 ? 's' : ''} selected for video
+                    <h2 className={cn(
+                      "text-xl font-bold",
+                      theme === "dark" ? "text-white" : "text-gray-900"
+                    )}>
+                      Musique Sélectionnée
+                    </h2>
+                    <p className={cn(
+                      "text-sm",
+                      theme === "dark" ? "text-gray-500" : "text-gray-500"
+                    )}>
+                      {selectedTracks.length} piste{selectedTracks.length !== 1 ? 's' : ''} sélectionnée{selectedTracks.length !== 1 ? 's' : ''}
                     </p>
                   </div>
                 </div>
@@ -576,7 +705,12 @@ const VideoBuilder: React.FC = () => {
                   {selectedTracks.map((track, index) => (
                     <div
                       key={track.id}
-                      className="flex items-center gap-3 p-3 rounded-lg border-2 border-green-200 bg-green-50"
+                      className={cn(
+                        "flex items-center gap-3 p-3 rounded-xl border-2",
+                        theme === "dark"
+                          ? "border-green-500/30 bg-green-500/10"
+                          : "border-green-200 bg-green-50"
+                      )}
                     >
                       {/* Track Number */}
                       <div className="flex-shrink-0">
@@ -593,20 +727,32 @@ const VideoBuilder: React.FC = () => {
                           className="w-14 h-14 rounded-lg object-cover flex-shrink-0"
                         />
                       ) : (
-                        <div className="w-14 h-14 bg-gray-200 rounded-lg flex items-center justify-center flex-shrink-0">
-                          <MusicCircle size={28} color="#9CA3AF" />
+                        <div className={cn(
+                          "w-14 h-14 rounded-lg flex items-center justify-center flex-shrink-0",
+                          theme === "dark" ? "bg-gray-800" : "bg-gray-200"
+                        )}>
+                          <MusicCircle size={28} color={theme === "dark" ? "#6b7280" : "#9CA3AF"} />
                         </div>
                       )}
 
                       {/* Track Info */}
                       <div className="flex-1 min-w-0">
-                        <h3 className="text-sm font-bold text-gray-900 truncate">
+                        <h3 className={cn(
+                          "text-sm font-bold truncate",
+                          theme === "dark" ? "text-white" : "text-gray-900"
+                        )}>
                           {track.name}
                         </h3>
-                        <p className="text-xs text-gray-600 truncate">
+                        <p className={cn(
+                          "text-xs truncate",
+                          theme === "dark" ? "text-gray-400" : "text-gray-600"
+                        )}>
                           {track.artists.map((a) => a.name).join(', ')}
                         </p>
-                        <span className="text-xs text-gray-500">
+                        <span className={cn(
+                          "text-xs",
+                          theme === "dark" ? "text-gray-500" : "text-gray-500"
+                        )}>
                           {formatDuration(track.duration)}
                         </span>
                       </div>
@@ -614,8 +760,13 @@ const VideoBuilder: React.FC = () => {
                       {/* Remove Button */}
                       <button
                         onClick={() => handleRemoveTrack(track.id)}
-                        className="flex-shrink-0 p-2 rounded-lg hover:bg-red-100 transition-colors group"
-                        title="Remove track"
+                        className={cn(
+                          "flex-shrink-0 p-2 rounded-lg transition-colors",
+                          theme === "dark"
+                            ? "hover:bg-red-500/20"
+                            : "hover:bg-red-100"
+                        )}
+                        title="Retirer"
                       >
                         <Trash size={20} color="#DC2626" />
                       </button>
@@ -628,17 +779,38 @@ const VideoBuilder: React.FC = () => {
 
           {/* Right Column - Selected Extracts */}
           <div className="space-y-6">
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 sticky top-6">
+            <div className={cn(
+              "p-6 rounded-2xl border-2 sticky top-6",
+              theme === "dark"
+                ? "bg-[#12121a] border-gray-800"
+                : "bg-white border-gray-200"
+            )}>
               <div className="mb-4">
-                <h2 className="text-lg font-bold text-gray-900">Selected Extracts</h2>
-                <p className="text-xs text-gray-500 mt-1">
-                  {selectedExtracts.length} extract{selectedExtracts.length !== 1 ? 's' : ''} • Click "Add to Timeline" to use
+                <h2 className={cn(
+                  "text-lg font-bold",
+                  theme === "dark" ? "text-white" : "text-gray-900"
+                )}>
+                  Extraits Sélectionnés
+                </h2>
+                <p className={cn(
+                  "text-xs mt-1",
+                  theme === "dark" ? "text-gray-500" : "text-gray-500"
+                )}>
+                  {selectedExtracts.length} extrait{selectedExtracts.length !== 1 ? 's' : ''} • Cliquez pour ajouter
                 </p>
               </div>
 
-              <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
-                <p className="text-xs text-green-800">
-                  <strong>✓ You can add the same extract multiple times</strong> to use different parts in your video
+              <div className={cn(
+                "rounded-xl p-3 mb-4 border",
+                theme === "dark"
+                  ? "bg-green-500/10 border-green-500/30"
+                  : "bg-green-50 border-green-200"
+              )}>
+                <p className={cn(
+                  "text-xs",
+                  theme === "dark" ? "text-green-400" : "text-green-800"
+                )}>
+                  <strong>Vous pouvez ajouter le même extrait plusieurs fois</strong> pour utiliser différentes parties dans votre vidéo
                 </p>
               </div>
 
@@ -646,7 +818,12 @@ const VideoBuilder: React.FC = () => {
                 {selectedExtracts.map((extract) => (
                   <div
                     key={extract.id}
-                    className="border-2 border-gray-200 rounded-lg p-3 hover:border-indigo-300 transition-colors bg-white"
+                    className={cn(
+                      "border-2 rounded-xl p-3 transition-colors",
+                      theme === "dark"
+                        ? "border-gray-800 hover:border-purple-500/50 bg-[#0a0a0f]"
+                        : "border-gray-200 hover:border-purple-300 bg-white"
+                    )}
                   >
                     {extract.animeImage && (
                       <img
@@ -655,11 +832,17 @@ const VideoBuilder: React.FC = () => {
                         className="w-full h-24 object-cover rounded-lg mb-2"
                       />
                     )}
-                    <h3 className="text-sm font-bold text-gray-900 mb-1">
+                    <h3 className={cn(
+                      "text-sm font-bold mb-1",
+                      theme === "dark" ? "text-white" : "text-gray-900"
+                    )}>
                       {extract.animeTitle}
                     </h3>
                     {extract.episode && (
-                      <span className="text-xs text-gray-500 mb-2 inline-block">
+                      <span className={cn(
+                        "text-xs mb-2 inline-block",
+                        theme === "dark" ? "text-gray-500" : "text-gray-500"
+                      )}>
                         Episode {extract.episode}
                       </span>
                     )}
@@ -671,15 +854,18 @@ const VideoBuilder: React.FC = () => {
                         {extract.theme.name}
                       </div>
                     )}
-                    <p className="text-xs text-gray-600 line-clamp-3 italic mb-3">
+                    <p className={cn(
+                      "text-xs line-clamp-3 italic mb-3",
+                      theme === "dark" ? "text-gray-400" : "text-gray-600"
+                    )}>
                       "{extract.text}"
                     </p>
                     <button
                       onClick={() => handleAddSegment(extract.id, extract.text)}
-                      className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors shadow-sm hover:shadow"
+                      className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-white bg-gradient-to-r from-purple-500 to-cyan-500 hover:from-purple-400 hover:to-cyan-400 rounded-lg transition-colors shadow-sm"
                     >
                       <Add size={16} variant="Bold" color="#FFFFFF" />
-                      Add to Timeline
+                      Ajouter à la Timeline
                     </button>
                   </div>
                 ))}
@@ -697,14 +883,14 @@ const VideoBuilder: React.FC = () => {
           setValidationError('');
         }}
         onConfirm={validationError ? () => setShowSaveModal(false) : handleConfirmSave}
-        title={validationError ? 'Validation Error' : 'Save Video'}
+        title={validationError ? 'Erreur de Validation' : 'Sauvegarder la Vidéo'}
         message={
           validationError ||
-          `Are you sure you want to save this video?\n\nTitle: ${videoTitle}\nSegments: ${videoSegments.length}\nMusic tracks: ${selectedTracks.length}`
+          `Êtes-vous sûr de vouloir sauvegarder cette vidéo ?\n\nTitre: ${videoTitle}\nSegments: ${videoSegments.length}\nPistes musicales: ${selectedTracks.length}`
         }
         type={validationError ? 'warning' : 'info'}
-        confirmText={validationError ? 'OK' : 'Save'}
-        cancelText={validationError ? undefined : 'Cancel'}
+        confirmText={validationError ? 'OK' : 'Sauvegarder'}
+        cancelText={validationError ? undefined : 'Annuler'}
         loading={saving}
       />
     </div>
