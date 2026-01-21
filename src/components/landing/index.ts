@@ -1,0 +1,11 @@
+export { default as Navbar } from "./Navbar";
+export { default as HeroSection } from "./HeroSection";
+export { default as FeaturesSection } from "./FeaturesSection";
+export { default as HowItWorksSection } from "./HowItWorksSection";
+export { default as PricingSection } from "./PricingSection";
+export { default as StatsSection } from "./StatsSection";
+export { default as TestimonialsSection } from "./TestimonialsSection";
+export { default as CTASection } from "./CTASection";
+export { default as Footer } from "./Footer";
+export { default as AnimatedBackground } from "./AnimatedBackground";
+export { useScrollAnimation } from "./useScrollAnimation";
