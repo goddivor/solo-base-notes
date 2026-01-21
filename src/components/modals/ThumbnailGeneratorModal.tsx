@@ -9,6 +9,8 @@ import ElementPropertiesPanel from '../thumbnail/ElementPropertiesPanel';
 import { DEFAULT_PRESET } from '../../lib/thumbnail-presets';
 import { exportThumbnail, generateThumbnailFilename } from '../../lib/thumbnail-export';
 import type { CanvasElement, TextElement, ImageElement } from '../../types/thumbnail';
+import { useTheme } from '../../context/theme-context';
+import { cn } from '../../lib/utils';
 
 interface Character {
   malId: number;
@@ -44,6 +46,7 @@ const ThumbnailGeneratorModal: React.FC<ThumbnailGeneratorModalProps> = ({
   videoTitle,
   segments,
 }) => {
+  const { theme } = useTheme();
   const [preset] = useState(DEFAULT_PRESET);
   const [backgroundImage, setBackgroundImage] = useState<string | null>(null);
   const [elements, setElements] = useState<CanvasElement[]>([]);
@@ -246,10 +249,13 @@ const ThumbnailGeneratorModal: React.FC<ThumbnailGeneratorModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-xl shadow-2xl w-full h-full max-h-[95vh] overflow-hidden flex flex-col">
+    <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+      <div className={cn(
+        "rounded-xl shadow-2xl w-full h-full max-h-[95vh] overflow-hidden flex flex-col",
+        theme === "dark" ? "bg-[#12121a]" : "bg-white"
+      )}>
         {/* Header */}
-        <div className="bg-gradient-to-r from-purple-600 to-pink-600 px-6 py-4 flex items-center justify-between flex-shrink-0">
+        <div className="bg-gradient-to-r from-purple-600 to-cyan-600 px-6 py-4 flex items-center justify-between flex-shrink-0">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center">
               <span className="text-2xl">🎨</span>
@@ -270,7 +276,12 @@ const ThumbnailGeneratorModal: React.FC<ThumbnailGeneratorModalProps> = ({
         {/* Main Content */}
         <div className="flex-1 overflow-hidden flex">
           {/* Left Panel - Image Sources */}
-          <div className="w-[30%] border-r border-gray-200 bg-gray-50 overflow-hidden">
+          <div className={cn(
+            "w-[30%] border-r overflow-hidden",
+            theme === "dark"
+              ? "border-gray-700 bg-[#0a0a0f]"
+              : "border-gray-200 bg-gray-50"
+          )}>
             <ImageSourcePanel
               segments={segments}
               onImageSelect={handleAddImage}
@@ -279,10 +290,19 @@ const ThumbnailGeneratorModal: React.FC<ThumbnailGeneratorModalProps> = ({
           </div>
 
           {/* Center Panel - Canvas Preview */}
-          <div className="flex-1 bg-gray-100 overflow-auto flex items-center justify-center p-6">
-            <div className="bg-white rounded-lg shadow-2xl p-4">
+          <div className={cn(
+            "flex-1 overflow-auto flex items-center justify-center p-6",
+            theme === "dark" ? "bg-[#0a0a0f]" : "bg-gray-100"
+          )}>
+            <div className={cn(
+              "rounded-lg shadow-2xl p-4",
+              theme === "dark" ? "bg-[#1a1a25]" : "bg-white"
+            )}>
               <div
-                className="relative border-4 border-gray-300 rounded"
+                className={cn(
+                  "relative border-4 rounded",
+                  theme === "dark" ? "border-gray-600" : "border-gray-300"
+                )}
                 style={{
                   width: '960px', // 50% de 1920
                   height: '540px', // 50% de 1080
@@ -350,7 +370,12 @@ const ThumbnailGeneratorModal: React.FC<ThumbnailGeneratorModalProps> = ({
           </div>
 
           {/* Right Panel - Background & Elements */}
-          <div className="w-[20%] border-l border-gray-200 bg-gray-50 overflow-y-auto">
+          <div className={cn(
+            "w-[20%] border-l overflow-y-auto",
+            theme === "dark"
+              ? "border-gray-700 bg-[#0a0a0f]"
+              : "border-gray-200 bg-gray-50"
+          )}>
             <div className="p-4">
               {/* Background Image Slot */}
               <BackgroundImageSlot
@@ -360,7 +385,10 @@ const ThumbnailGeneratorModal: React.FC<ThumbnailGeneratorModalProps> = ({
               />
 
               {/* Divider */}
-              <div className="border-t border-gray-300 my-6"></div>
+              <div className={cn(
+                "border-t my-6",
+                theme === "dark" ? "border-gray-700" : "border-gray-300"
+              )}></div>
 
               {/* Element Addition Buttons */}
               <ElementAddButtons
@@ -369,17 +397,29 @@ const ThumbnailGeneratorModal: React.FC<ThumbnailGeneratorModalProps> = ({
               />
 
               {/* Divider */}
-              <div className="border-t border-gray-300 my-6"></div>
+              <div className={cn(
+                "border-t my-6",
+                theme === "dark" ? "border-gray-700" : "border-gray-300"
+              )}></div>
 
               {/* Elements List */}
-              <h3 className="text-sm font-bold text-gray-900 mb-2">Calques</h3>
-              <p className="text-xs text-gray-500 mb-3">
+              <h3 className={cn(
+                "text-sm font-bold mb-2",
+                theme === "dark" ? "text-white" : "text-gray-900"
+              )}>Calques</h3>
+              <p className={cn(
+                "text-xs mb-3",
+                theme === "dark" ? "text-gray-400" : "text-gray-500"
+              )}>
                 {elements.length} élément{elements.length !== 1 ? 's' : ''}
               </p>
 
               <div>
                 {elements.length === 0 ? (
-                  <div className="text-center py-8 text-gray-400 text-xs">
+                  <div className={cn(
+                    "text-center py-8 text-xs",
+                    theme === "dark" ? "text-gray-500" : "text-gray-400"
+                  )}>
                     <p>Aucun calque</p>
                     <p className="mt-1">Ajoutez des images ou textes</p>
                   </div>
@@ -406,7 +446,10 @@ const ThumbnailGeneratorModal: React.FC<ThumbnailGeneratorModalProps> = ({
               </div>
 
               {/* Divider */}
-              <div className="border-t border-gray-300 my-6"></div>
+              <div className={cn(
+                "border-t my-6",
+                theme === "dark" ? "border-gray-700" : "border-gray-300"
+              )}></div>
 
               {/* Element Properties Panel */}
               <ElementPropertiesPanel
@@ -418,21 +461,34 @@ const ThumbnailGeneratorModal: React.FC<ThumbnailGeneratorModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="border-t border-gray-200 px-6 py-4 bg-gray-50 flex items-center justify-between flex-shrink-0">
-          <div className="text-sm text-gray-600">
+        <div className={cn(
+          "border-t px-6 py-4 flex items-center justify-between flex-shrink-0",
+          theme === "dark"
+            ? "border-gray-700 bg-[#0a0a0f]"
+            : "border-gray-200 bg-gray-50"
+        )}>
+          <div className={cn(
+            "text-sm",
+            theme === "dark" ? "text-gray-400" : "text-gray-600"
+          )}>
             {segments.length} segment{segments.length !== 1 ? 's' : ''} disponible{segments.length !== 1 ? 's' : ''}
           </div>
           <div className="flex gap-3">
             <Button
               onClick={onClose}
-              className="px-4 py-2 bg-gray-200 text-gray-700 hover:bg-gray-300 rounded-lg font-medium"
+              className={cn(
+                "px-4 py-2 rounded-lg font-medium transition-colors",
+                theme === "dark"
+                  ? "bg-gray-800 text-gray-300 hover:bg-gray-700"
+                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+              )}
             >
               Annuler
             </Button>
             <Button
               onClick={handleExport}
               disabled={isExporting}
-              className="px-6 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700 rounded-lg font-medium shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-6 py-2 bg-gradient-to-r from-purple-500 to-cyan-500 text-white hover:from-purple-400 hover:to-cyan-400 rounded-lg font-medium shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isExporting ? 'Export en cours...' : 'Exporter PNG'}
             </Button>

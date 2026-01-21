@@ -1,5 +1,7 @@
 import React from 'react';
 import type { CanvasElement, TextElement, ImageElement } from '../../types/thumbnail';
+import { useTheme } from '../../context/theme-context';
+import { cn } from '../../lib/utils';
 
 interface ElementPropertiesPanelProps {
   element: CanvasElement | null;
@@ -10,10 +12,20 @@ const ElementPropertiesPanel: React.FC<ElementPropertiesPanelProps> = ({
   element,
   onUpdate,
 }) => {
+  const { theme } = useTheme();
+
   if (!element) {
     return (
-      <div className="p-4 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
-        <p className="text-xs text-gray-500 text-center">
+      <div className={cn(
+        "p-4 rounded-lg border-2 border-dashed",
+        theme === "dark"
+          ? "bg-[#1a1a25] border-gray-600"
+          : "bg-gray-50 border-gray-300"
+      )}>
+        <p className={cn(
+          "text-xs text-center",
+          theme === "dark" ? "text-gray-500" : "text-gray-500"
+        )}>
           Sélectionnez un élément pour modifier ses propriétés
         </p>
       </div>
@@ -27,8 +39,14 @@ const ElementPropertiesPanel: React.FC<ElementPropertiesPanelProps> = ({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h4 className="text-sm font-bold text-gray-900">Propriétés</h4>
-        <span className="text-xs text-gray-500">
+        <h4 className={cn(
+          "text-sm font-bold",
+          theme === "dark" ? "text-white" : "text-gray-900"
+        )}>Propriétés</h4>
+        <span className={cn(
+          "text-xs",
+          theme === "dark" ? "text-gray-400" : "text-gray-500"
+        )}>
           {isText ? '📝 Texte' : '🖼️ Image'}
         </span>
       </div>
@@ -38,26 +56,42 @@ const ElementPropertiesPanel: React.FC<ElementPropertiesPanelProps> = ({
         <>
           {/* Text content */}
           <div>
-            <label className="block text-xs font-semibold text-gray-700 mb-1">
+            <label className={cn(
+              "block text-xs font-semibold mb-1",
+              theme === "dark" ? "text-gray-300" : "text-gray-700"
+            )}>
               Texte
             </label>
             <textarea
               value={textElement.text}
               onChange={(e) => onUpdate(element.id, { text: e.target.value })}
-              className="w-full px-2 py-1.5 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none"
+              className={cn(
+                "w-full px-2 py-1.5 text-xs border rounded focus:ring-2 focus:ring-purple-500 focus:border-purple-500 resize-none",
+                theme === "dark"
+                  ? "bg-[#0a0a0f] border-gray-600 text-white"
+                  : "bg-white border-gray-300 text-gray-900"
+              )}
               rows={3}
             />
           </div>
 
           {/* Font family */}
           <div>
-            <label className="block text-xs font-semibold text-gray-700 mb-1">
+            <label className={cn(
+              "block text-xs font-semibold mb-1",
+              theme === "dark" ? "text-gray-300" : "text-gray-700"
+            )}>
               Police
             </label>
             <select
               value={textElement.fontFamily}
               onChange={(e) => onUpdate(element.id, { fontFamily: e.target.value })}
-              className="w-full px-2 py-1.5 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-indigo-500"
+              className={cn(
+                "w-full px-2 py-1.5 text-xs border rounded focus:ring-2 focus:ring-purple-500",
+                theme === "dark"
+                  ? "bg-[#0a0a0f] border-gray-600 text-white"
+                  : "bg-white border-gray-300 text-gray-900"
+              )}
             >
               <option value="Impact, Arial Black, sans-serif">Impact</option>
               <option value="Arial, sans-serif">Arial</option>
@@ -70,26 +104,42 @@ const ElementPropertiesPanel: React.FC<ElementPropertiesPanelProps> = ({
           {/* Font size & weight */}
           <div className="grid grid-cols-2 gap-2">
             <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1">
+              <label className={cn(
+                "block text-xs font-semibold mb-1",
+                theme === "dark" ? "text-gray-300" : "text-gray-700"
+              )}>
                 Taille
               </label>
               <input
                 type="number"
                 value={textElement.fontSize}
                 onChange={(e) => onUpdate(element.id, { fontSize: Number(e.target.value) })}
-                className="w-full px-2 py-1.5 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-indigo-500"
+                className={cn(
+                  "w-full px-2 py-1.5 text-xs border rounded focus:ring-2 focus:ring-purple-500",
+                  theme === "dark"
+                    ? "bg-[#0a0a0f] border-gray-600 text-white"
+                    : "bg-white border-gray-300 text-gray-900"
+                )}
                 min="10"
                 max="300"
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1">
+              <label className={cn(
+                "block text-xs font-semibold mb-1",
+                theme === "dark" ? "text-gray-300" : "text-gray-700"
+              )}>
                 Graisse
               </label>
               <select
                 value={textElement.fontWeight}
                 onChange={(e) => onUpdate(element.id, { fontWeight: e.target.value as 'normal' | 'bold' | '900' })}
-                className="w-full px-2 py-1.5 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-indigo-500"
+                className={cn(
+                  "w-full px-2 py-1.5 text-xs border rounded focus:ring-2 focus:ring-purple-500",
+                  theme === "dark"
+                    ? "bg-[#0a0a0f] border-gray-600 text-white"
+                    : "bg-white border-gray-300 text-gray-900"
+                )}
               >
                 <option value="normal">Normal</option>
                 <option value="bold">Gras</option>
@@ -101,7 +151,10 @@ const ElementPropertiesPanel: React.FC<ElementPropertiesPanelProps> = ({
           {/* Colors */}
           <div className="grid grid-cols-2 gap-2">
             <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1">
+              <label className={cn(
+                "block text-xs font-semibold mb-1",
+                theme === "dark" ? "text-gray-300" : "text-gray-700"
+              )}>
                 Couleur
               </label>
               <div className="flex items-center gap-2">
@@ -109,18 +162,29 @@ const ElementPropertiesPanel: React.FC<ElementPropertiesPanelProps> = ({
                   type="color"
                   value={textElement.color}
                   onChange={(e) => onUpdate(element.id, { color: e.target.value })}
-                  className="w-10 h-8 border border-gray-300 rounded cursor-pointer"
+                  className={cn(
+                    "w-10 h-8 border rounded cursor-pointer",
+                    theme === "dark" ? "border-gray-600" : "border-gray-300"
+                  )}
                 />
                 <input
                   type="text"
                   value={textElement.color}
                   onChange={(e) => onUpdate(element.id, { color: e.target.value })}
-                  className="flex-1 px-2 py-1.5 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-indigo-500"
+                  className={cn(
+                    "flex-1 px-2 py-1.5 text-xs border rounded focus:ring-2 focus:ring-purple-500",
+                    theme === "dark"
+                      ? "bg-[#0a0a0f] border-gray-600 text-white"
+                      : "bg-white border-gray-300 text-gray-900"
+                  )}
                 />
               </div>
             </div>
             <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1">
+              <label className={cn(
+                "block text-xs font-semibold mb-1",
+                theme === "dark" ? "text-gray-300" : "text-gray-700"
+              )}>
                 Contour
               </label>
               <div className="flex items-center gap-2">
@@ -128,13 +192,21 @@ const ElementPropertiesPanel: React.FC<ElementPropertiesPanelProps> = ({
                   type="color"
                   value={textElement.strokeColor || '#000000'}
                   onChange={(e) => onUpdate(element.id, { strokeColor: e.target.value })}
-                  className="w-10 h-8 border border-gray-300 rounded cursor-pointer"
+                  className={cn(
+                    "w-10 h-8 border rounded cursor-pointer",
+                    theme === "dark" ? "border-gray-600" : "border-gray-300"
+                  )}
                 />
                 <input
                   type="number"
                   value={textElement.strokeWidth || 0}
                   onChange={(e) => onUpdate(element.id, { strokeWidth: Number(e.target.value) })}
-                  className="flex-1 px-2 py-1.5 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-indigo-500"
+                  className={cn(
+                    "flex-1 px-2 py-1.5 text-xs border rounded focus:ring-2 focus:ring-purple-500",
+                    theme === "dark"
+                      ? "bg-[#0a0a0f] border-gray-600 text-white"
+                      : "bg-white border-gray-300 text-gray-900"
+                  )}
                   min="0"
                   max="20"
                   placeholder="Épaisseur"
@@ -145,37 +217,49 @@ const ElementPropertiesPanel: React.FC<ElementPropertiesPanelProps> = ({
 
           {/* Text align */}
           <div>
-            <label className="block text-xs font-semibold text-gray-700 mb-1">
+            <label className={cn(
+              "block text-xs font-semibold mb-1",
+              theme === "dark" ? "text-gray-300" : "text-gray-700"
+            )}>
               Alignement
             </label>
             <div className="grid grid-cols-3 gap-1">
               <button
                 onClick={() => onUpdate(element.id, { textAlign: 'left' })}
-                className={`px-2 py-1.5 text-xs border rounded transition-colors ${
+                className={cn(
+                  "px-2 py-1.5 text-xs border rounded transition-colors",
                   textElement.textAlign === 'left'
-                    ? 'bg-indigo-500 text-white border-indigo-600'
-                    : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-                }`}
+                    ? "bg-purple-500 text-white border-purple-600"
+                    : theme === "dark"
+                      ? "bg-[#1a1a25] text-gray-300 border-gray-600 hover:bg-gray-700"
+                      : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                )}
               >
                 Gauche
               </button>
               <button
                 onClick={() => onUpdate(element.id, { textAlign: 'center' })}
-                className={`px-2 py-1.5 text-xs border rounded transition-colors ${
+                className={cn(
+                  "px-2 py-1.5 text-xs border rounded transition-colors",
                   textElement.textAlign === 'center'
-                    ? 'bg-indigo-500 text-white border-indigo-600'
-                    : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-                }`}
+                    ? "bg-purple-500 text-white border-purple-600"
+                    : theme === "dark"
+                      ? "bg-[#1a1a25] text-gray-300 border-gray-600 hover:bg-gray-700"
+                      : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                )}
               >
                 Centre
               </button>
               <button
                 onClick={() => onUpdate(element.id, { textAlign: 'right' })}
-                className={`px-2 py-1.5 text-xs border rounded transition-colors ${
+                className={cn(
+                  "px-2 py-1.5 text-xs border rounded transition-colors",
                   textElement.textAlign === 'right'
-                    ? 'bg-indigo-500 text-white border-indigo-600'
-                    : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-                }`}
+                    ? "bg-purple-500 text-white border-purple-600"
+                    : theme === "dark"
+                      ? "bg-[#1a1a25] text-gray-300 border-gray-600 hover:bg-gray-700"
+                      : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                )}
               >
                 Droite
               </button>
@@ -188,27 +272,43 @@ const ElementPropertiesPanel: React.FC<ElementPropertiesPanelProps> = ({
       {imageElement && (
         <>
           <div>
-            <label className="block text-xs font-semibold text-gray-700 mb-1">
+            <label className={cn(
+              "block text-xs font-semibold mb-1",
+              theme === "dark" ? "text-gray-300" : "text-gray-700"
+            )}>
               Nom
             </label>
             <input
               type="text"
               value={imageElement.label || ''}
               onChange={(e) => onUpdate(element.id, { label: e.target.value })}
-              className="w-full px-2 py-1.5 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-indigo-500"
+              className={cn(
+                "w-full px-2 py-1.5 text-xs border rounded focus:ring-2 focus:ring-purple-500",
+                theme === "dark"
+                  ? "bg-[#0a0a0f] border-gray-600 text-white"
+                  : "bg-white border-gray-300 text-gray-900"
+              )}
               placeholder="Nom de l'image"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-gray-700 mb-1">
+            <label className={cn(
+              "block text-xs font-semibold mb-1",
+              theme === "dark" ? "text-gray-300" : "text-gray-700"
+            )}>
               URL de l'image
             </label>
             <input
               type="text"
               value={imageElement.imageUrl}
               onChange={(e) => onUpdate(element.id, { imageUrl: e.target.value })}
-              className="w-full px-2 py-1.5 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-indigo-500"
+              className={cn(
+                "w-full px-2 py-1.5 text-xs border rounded focus:ring-2 focus:ring-purple-500",
+                theme === "dark"
+                  ? "bg-[#0a0a0f] border-gray-600 text-white"
+                  : "bg-white border-gray-300 text-gray-900"
+              )}
               placeholder="https://..."
             />
           </div>
@@ -216,27 +316,43 @@ const ElementPropertiesPanel: React.FC<ElementPropertiesPanelProps> = ({
           {/* Size */}
           <div className="grid grid-cols-2 gap-2">
             <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1">
+              <label className={cn(
+                "block text-xs font-semibold mb-1",
+                theme === "dark" ? "text-gray-300" : "text-gray-700"
+              )}>
                 Largeur
               </label>
               <input
                 type="number"
                 value={imageElement.size.width}
                 onChange={(e) => onUpdate(element.id, { size: { ...imageElement.size, width: Number(e.target.value) } })}
-                className="w-full px-2 py-1.5 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-indigo-500"
+                className={cn(
+                  "w-full px-2 py-1.5 text-xs border rounded focus:ring-2 focus:ring-purple-500",
+                  theme === "dark"
+                    ? "bg-[#0a0a0f] border-gray-600 text-white"
+                    : "bg-white border-gray-300 text-gray-900"
+                )}
                 min="10"
                 max="1920"
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1">
+              <label className={cn(
+                "block text-xs font-semibold mb-1",
+                theme === "dark" ? "text-gray-300" : "text-gray-700"
+              )}>
                 Hauteur
               </label>
               <input
                 type="number"
                 value={imageElement.size.height}
                 onChange={(e) => onUpdate(element.id, { size: { ...imageElement.size, height: Number(e.target.value) } })}
-                className="w-full px-2 py-1.5 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-indigo-500"
+                className={cn(
+                  "w-full px-2 py-1.5 text-xs border rounded focus:ring-2 focus:ring-purple-500",
+                  theme === "dark"
+                    ? "bg-[#0a0a0f] border-gray-600 text-white"
+                    : "bg-white border-gray-300 text-gray-900"
+                )}
                 min="10"
                 max="1080"
               />
@@ -246,33 +362,55 @@ const ElementPropertiesPanel: React.FC<ElementPropertiesPanelProps> = ({
       )}
 
       {/* Common properties */}
-      <div className="border-t border-gray-300 pt-4">
-        <h5 className="text-xs font-bold text-gray-700 mb-3">Transformation</h5>
+      <div className={cn(
+        "border-t pt-4",
+        theme === "dark" ? "border-gray-700" : "border-gray-300"
+      )}>
+        <h5 className={cn(
+          "text-xs font-bold mb-3",
+          theme === "dark" ? "text-gray-300" : "text-gray-700"
+        )}>Transformation</h5>
 
         {/* Position */}
         <div className="grid grid-cols-2 gap-2 mb-3">
           <div>
-            <label className="block text-xs font-semibold text-gray-700 mb-1">
+            <label className={cn(
+              "block text-xs font-semibold mb-1",
+              theme === "dark" ? "text-gray-300" : "text-gray-700"
+            )}>
               Position X
             </label>
             <input
               type="number"
               value={element.position.x}
               onChange={(e) => onUpdate(element.id, { position: { ...element.position, x: Number(e.target.value) } })}
-              className="w-full px-2 py-1.5 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-indigo-500"
+              className={cn(
+                "w-full px-2 py-1.5 text-xs border rounded focus:ring-2 focus:ring-purple-500",
+                theme === "dark"
+                  ? "bg-[#0a0a0f] border-gray-600 text-white"
+                  : "bg-white border-gray-300 text-gray-900"
+              )}
               min="0"
               max="1920"
             />
           </div>
           <div>
-            <label className="block text-xs font-semibold text-gray-700 mb-1">
+            <label className={cn(
+              "block text-xs font-semibold mb-1",
+              theme === "dark" ? "text-gray-300" : "text-gray-700"
+            )}>
               Position Y
             </label>
             <input
               type="number"
               value={element.position.y}
               onChange={(e) => onUpdate(element.id, { position: { ...element.position, y: Number(e.target.value) } })}
-              className="w-full px-2 py-1.5 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-indigo-500"
+              className={cn(
+                "w-full px-2 py-1.5 text-xs border rounded focus:ring-2 focus:ring-purple-500",
+                theme === "dark"
+                  ? "bg-[#0a0a0f] border-gray-600 text-white"
+                  : "bg-white border-gray-300 text-gray-900"
+              )}
               min="0"
               max="1080"
             />
@@ -281,14 +419,22 @@ const ElementPropertiesPanel: React.FC<ElementPropertiesPanelProps> = ({
 
         {/* Rotation */}
         <div className="mb-3">
-          <label className="block text-xs font-semibold text-gray-700 mb-1">
+          <label className={cn(
+            "block text-xs font-semibold mb-1",
+            theme === "dark" ? "text-gray-300" : "text-gray-700"
+          )}>
             Rotation (degrés)
           </label>
           <input
             type="number"
             value={element.rotation}
             onChange={(e) => onUpdate(element.id, { rotation: Number(e.target.value) })}
-            className="w-full px-2 py-1.5 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-indigo-500"
+            className={cn(
+              "w-full px-2 py-1.5 text-xs border rounded focus:ring-2 focus:ring-purple-500",
+              theme === "dark"
+                ? "bg-[#0a0a0f] border-gray-600 text-white"
+                : "bg-white border-gray-300 text-gray-900"
+            )}
             min="-360"
             max="360"
           />
@@ -296,14 +442,17 @@ const ElementPropertiesPanel: React.FC<ElementPropertiesPanelProps> = ({
 
         {/* Opacity */}
         <div>
-          <label className="block text-xs font-semibold text-gray-700 mb-1">
+          <label className={cn(
+            "block text-xs font-semibold mb-1",
+            theme === "dark" ? "text-gray-300" : "text-gray-700"
+          )}>
             Opacité: {Math.round(element.opacity * 100)}%
           </label>
           <input
             type="range"
             value={element.opacity}
             onChange={(e) => onUpdate(element.id, { opacity: Number(e.target.value) })}
-            className="w-full"
+            className="w-full accent-purple-500"
             min="0"
             max="1"
             step="0.01"

@@ -1,5 +1,7 @@
 import React, { useMemo } from 'react';
 import { Gallery, People } from 'iconsax-react';
+import { useTheme } from '../../context/theme-context';
+import { cn } from '../../lib/utils';
 
 interface Character {
   malId: number;
@@ -38,6 +40,7 @@ interface ImageSourcePanelProps {
 }
 
 const ImageSourcePanel: React.FC<ImageSourcePanelProps> = ({ segments, onImageSelect, onImageDragStart }) => {
+  const { theme } = useTheme();
 
   const handleDragStart = (imageUrl: string, label: string) => (e: React.DragEvent) => {
     e.dataTransfer.setData('imageUrl', imageUrl);
@@ -95,9 +98,20 @@ const ImageSourcePanel: React.FC<ImageSourcePanelProps> = ({ segments, onImageSe
   return (
     <div className="h-full flex flex-col">
       {/* Header */}
-      <div className="p-4 border-b border-gray-200 bg-white">
-        <h3 className="text-lg font-bold text-gray-900 mb-1">Sources d'images</h3>
-        <p className="text-xs text-gray-500">
+      <div className={cn(
+        "p-4 border-b",
+        theme === "dark"
+          ? "border-gray-700 bg-[#12121a]"
+          : "border-gray-200 bg-white"
+      )}>
+        <h3 className={cn(
+          "text-lg font-bold mb-1",
+          theme === "dark" ? "text-white" : "text-gray-900"
+        )}>Sources d'images</h3>
+        <p className={cn(
+          "text-xs",
+          theme === "dark" ? "text-gray-400" : "text-gray-500"
+        )}>
           {imageSources.length} image{imageSources.length !== 1 ? 's' : ''} disponible
           {imageSources.length !== 1 ? 's' : ''}
         </p>
@@ -107,11 +121,20 @@ const ImageSourcePanel: React.FC<ImageSourcePanelProps> = ({ segments, onImageSe
       <div className="flex-1 overflow-y-auto p-4 space-y-6">
         {imageSources.length === 0 ? (
           <div className="text-center py-12">
-            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
-              <Gallery size={32} color="#9CA3AF" />
+            <div className={cn(
+              "w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3",
+              theme === "dark" ? "bg-gray-800" : "bg-gray-100"
+            )}>
+              <Gallery size={32} color={theme === "dark" ? "#6B7280" : "#9CA3AF"} />
             </div>
-            <p className="text-gray-500 text-sm">Aucune image disponible</p>
-            <p className="text-gray-400 text-xs mt-1">
+            <p className={cn(
+              "text-sm",
+              theme === "dark" ? "text-gray-400" : "text-gray-500"
+            )}>Aucune image disponible</p>
+            <p className={cn(
+              "text-xs mt-1",
+              theme === "dark" ? "text-gray-500" : "text-gray-400"
+            )}>
               Les extraits ne contiennent pas d'images
             </p>
           </div>
@@ -121,8 +144,11 @@ const ImageSourcePanel: React.FC<ImageSourcePanelProps> = ({ segments, onImageSe
             {animeImages.length > 0 && (
               <div>
                 <div className="flex items-center gap-2 mb-3">
-                  <Gallery size={20} variant="Bold" color="#6366F1" />
-                  <h4 className="font-semibold text-gray-900 text-sm">
+                  <Gallery size={20} variant="Bold" color={theme === "dark" ? "#A855F7" : "#6366F1"} />
+                  <h4 className={cn(
+                    "font-semibold text-sm",
+                    theme === "dark" ? "text-white" : "text-gray-900"
+                  )}>
                     Images d'anime ({animeImages.length})
                   </h4>
                 </div>
@@ -133,9 +159,17 @@ const ImageSourcePanel: React.FC<ImageSourcePanelProps> = ({ segments, onImageSe
                       draggable={true}
                       onDragStart={handleDragStart(image.url, image.label)}
                       onClick={() => onImageSelect(image.url, image.label)}
-                      className="group relative overflow-hidden rounded-lg border-2 border-gray-200 hover:border-indigo-500 transition-all hover:shadow-lg bg-white cursor-grab active:cursor-grabbing"
+                      className={cn(
+                        "group relative overflow-hidden rounded-lg border-2 transition-all hover:shadow-lg cursor-grab active:cursor-grabbing",
+                        theme === "dark"
+                          ? "border-gray-700 hover:border-purple-500 bg-[#1a1a25]"
+                          : "border-gray-200 hover:border-indigo-500 bg-white"
+                      )}
                     >
-                      <div className="aspect-square relative bg-gray-100">
+                      <div className={cn(
+                        "aspect-square relative",
+                        theme === "dark" ? "bg-gray-800" : "bg-gray-100"
+                      )}>
                         <img
                           src={image.url}
                           alt={image.label}
@@ -143,13 +177,21 @@ const ImageSourcePanel: React.FC<ImageSourcePanelProps> = ({ segments, onImageSe
                         />
                         <div className="absolute inset-0 bg-black opacity-0 group-hover:opacity-40 transition-opacity z-10 pointer-events-none"></div>
                         <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
-                          <span className="text-white font-semibold text-xs opacity-0 group-hover:opacity-100 transition-opacity px-2 text-center bg-black bg-opacity-50 rounded px-3 py-1">
+                          <span className="text-white font-semibold text-xs opacity-0 group-hover:opacity-100 transition-opacity px-2 text-center bg-black/50 rounded px-3 py-1">
                             Ajouter
                           </span>
                         </div>
                       </div>
-                      <div className="p-2 bg-gray-50 border-t border-gray-200">
-                        <p className="text-xs font-medium text-gray-700 truncate">
+                      <div className={cn(
+                        "p-2 border-t",
+                        theme === "dark"
+                          ? "bg-[#12121a] border-gray-700"
+                          : "bg-gray-50 border-gray-200"
+                      )}>
+                        <p className={cn(
+                          "text-xs font-medium truncate",
+                          theme === "dark" ? "text-gray-300" : "text-gray-700"
+                        )}>
                           {image.label}
                         </p>
                       </div>
@@ -163,8 +205,11 @@ const ImageSourcePanel: React.FC<ImageSourcePanelProps> = ({ segments, onImageSe
             {characterImages.length > 0 && (
               <div>
                 <div className="flex items-center gap-2 mb-3">
-                  <People size={20} variant="Bold" color="#8B5CF6" />
-                  <h4 className="font-semibold text-gray-900 text-sm">
+                  <People size={20} variant="Bold" color={theme === "dark" ? "#06B6D4" : "#8B5CF6"} />
+                  <h4 className={cn(
+                    "font-semibold text-sm",
+                    theme === "dark" ? "text-white" : "text-gray-900"
+                  )}>
                     Personnages ({characterImages.length})
                   </h4>
                 </div>
@@ -175,9 +220,17 @@ const ImageSourcePanel: React.FC<ImageSourcePanelProps> = ({ segments, onImageSe
                       draggable={true}
                       onDragStart={handleDragStart(image.url, image.label)}
                       onClick={() => onImageSelect(image.url, image.label)}
-                      className="group relative overflow-hidden rounded-lg border-2 border-gray-200 hover:border-purple-500 transition-all hover:shadow-lg bg-white cursor-grab active:cursor-grabbing"
+                      className={cn(
+                        "group relative overflow-hidden rounded-lg border-2 transition-all hover:shadow-lg cursor-grab active:cursor-grabbing",
+                        theme === "dark"
+                          ? "border-gray-700 hover:border-cyan-500 bg-[#1a1a25]"
+                          : "border-gray-200 hover:border-purple-500 bg-white"
+                      )}
                     >
-                      <div className="aspect-square relative bg-gray-100">
+                      <div className={cn(
+                        "aspect-square relative",
+                        theme === "dark" ? "bg-gray-800" : "bg-gray-100"
+                      )}>
                         <img
                           src={image.url}
                           alt={image.label}
@@ -185,17 +238,28 @@ const ImageSourcePanel: React.FC<ImageSourcePanelProps> = ({ segments, onImageSe
                         />
                         <div className="absolute inset-0 bg-black opacity-0 group-hover:opacity-40 transition-opacity z-10 pointer-events-none"></div>
                         <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
-                          <span className="text-white font-semibold text-xs opacity-0 group-hover:opacity-100 transition-opacity px-2 text-center bg-black bg-opacity-50 rounded px-3 py-1">
+                          <span className="text-white font-semibold text-xs opacity-0 group-hover:opacity-100 transition-opacity px-2 text-center bg-black/50 rounded px-3 py-1">
                             Ajouter
                           </span>
                         </div>
                       </div>
-                      <div className="p-2 bg-gray-50 border-t border-gray-200">
-                        <p className="text-xs font-medium text-gray-700 truncate">
+                      <div className={cn(
+                        "p-2 border-t",
+                        theme === "dark"
+                          ? "bg-[#12121a] border-gray-700"
+                          : "bg-gray-50 border-gray-200"
+                      )}>
+                        <p className={cn(
+                          "text-xs font-medium truncate",
+                          theme === "dark" ? "text-gray-300" : "text-gray-700"
+                        )}>
                           {image.characterName}
                         </p>
                         {image.animeTitle && (
-                          <p className="text-[10px] text-gray-500 truncate">
+                          <p className={cn(
+                            "text-[10px] truncate",
+                            theme === "dark" ? "text-gray-500" : "text-gray-500"
+                          )}>
                             {image.animeTitle}
                           </p>
                         )}
