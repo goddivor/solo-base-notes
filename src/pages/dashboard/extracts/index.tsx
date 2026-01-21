@@ -3,9 +3,10 @@ import { useQuery, useMutation } from '@apollo/client';
 import { useNavigate } from 'react-router';
 import { GET_EXTRACTS, GET_THEMES, GET_THEME_GROUPS } from '../../../lib/graphql/queries';
 import { DELETE_EXTRACT } from '../../../lib/graphql/mutations';
-import { Add, Edit2, Trash, Clock, Calendar, Profile2User, VideoPlay, TickCircle, CloseCircle } from 'iconsax-react';
+import { Add, Edit2, Trash, Clock, Calendar, Profile2User, VideoPlay, TickCircle, CloseCircle, DocumentDownload, DocumentUpload } from 'iconsax-react';
 import Button from '../../../components/actions/button';
 import ActionConfirmationModal from '../../../components/modals/ActionConfirmationModal';
+import { ExportModal, ImportModal } from '../../../components/export-import';
 import { useToast } from '../../../context/toast-context';
 
 interface Character {
@@ -56,6 +57,9 @@ const ExtractsPage: React.FC = () => {
   const [extractToDelete, setExtractToDelete] = useState<{ id: string; text: string } | null>(null);
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [selectedExtracts, setSelectedExtracts] = useState<string[]>([]);
+  const [showExportModal, setShowExportModal] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [selectionModeType, setSelectionModeType] = useState<'video' | 'export'>('video');
 
   const { data: themesData } = useQuery(GET_THEMES);
   const { data: themeGroupsData } = useQuery(GET_THEME_GROUPS);
@@ -90,8 +94,8 @@ const ExtractsPage: React.FC = () => {
   };
 
   const toggleExtractSelection = (extractId: string, isUsedInVideo: boolean) => {
-    // Prevent selection if extract is already used in a video
-    if (isUsedInVideo) {
+    // For video mode, prevent selection if extract is already used in a video
+    if (selectionModeType === 'video' && isUsedInVideo) {
       toast.error('Extract already in use', 'This extract is already used in a video and cannot be selected');
       return;
     }
@@ -117,6 +121,33 @@ const ExtractsPage: React.FC = () => {
   const handleCancelSelection = () => {
     setIsSelectionMode(false);
     setSelectedExtracts([]);
+    setSelectionModeType('video');
+  };
+
+  const handleStartExportSelection = () => {
+    setSelectionModeType('export');
+    setIsSelectionMode(true);
+    setSelectedExtracts([]);
+  };
+
+  const handleExportSelected = () => {
+    if (selectedExtracts.length === 0) {
+      toast.error('Aucun extrait sélectionné', 'Veuillez sélectionner au moins un extrait à exporter');
+      return;
+    }
+    setShowExportModal(true);
+  };
+
+  const handleExportComplete = () => {
+    setShowExportModal(false);
+    setIsSelectionMode(false);
+    setSelectedExtracts([]);
+    setSelectionModeType('video');
+  };
+
+  const handleImportComplete = () => {
+    setShowImportModal(false);
+    refetch();
   };
 
   const themes: Theme[] = useMemo(() => themesData?.themes || [], [themesData]);
@@ -164,34 +195,73 @@ const ExtractsPage: React.FC = () => {
             <h1 className="text-3xl font-bold text-gray-900 mb-2">All Extracts</h1>
             <p className="text-gray-600">
               {isSelectionMode
-                ? `${selectedExtracts.length} extract${selectedExtracts.length !== 1 ? 's' : ''} selected for video`
+                ? selectionModeType === 'export'
+                  ? `${selectedExtracts.length} extrait${selectedExtracts.length !== 1 ? 's' : ''} sélectionné${selectedExtracts.length !== 1 ? 's' : ''} pour l'export`
+                  : `${selectedExtracts.length} extract${selectedExtracts.length !== 1 ? 's' : ''} selected for video`
                 : 'Browse and manage your anime extracts'
               }
             </p>
           </div>
           <div className="flex gap-3">
             {isSelectionMode ? (
-              <>
-                <Button
-                  onClick={handleCancelSelection}
-                  className="flex items-center gap-2 px-6 py-3 bg-gray-200 text-gray-700 hover:bg-gray-300 rounded-lg font-medium transition-all"
-                >
-                  <CloseCircle size={20} variant="Bulk" color="#374151" />
-                  Cancel
-                </Button>
-                <Button
-                  onClick={handleCreateVideo}
-                  disabled={selectedExtracts.length === 0}
-                  className="flex items-center gap-2 px-6 py-3 bg-green-600 text-white hover:bg-green-700 rounded-lg font-medium transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <TickCircle size={20} variant="Bulk" color="#FFFFFF" />
-                  Continue ({selectedExtracts.length})
-                </Button>
-              </>
+              selectionModeType === 'export' ? (
+                <>
+                  <Button
+                    onClick={handleCancelSelection}
+                    className="flex items-center gap-2 px-6 py-3 bg-gray-200 text-gray-700 hover:bg-gray-300 rounded-lg font-medium transition-all"
+                  >
+                    <CloseCircle size={20} variant="Bulk" color="#374151" />
+                    Annuler
+                  </Button>
+                  <Button
+                    onClick={handleExportSelected}
+                    disabled={selectedExtracts.length === 0}
+                    className="flex items-center gap-2 px-6 py-3 bg-green-600 text-white hover:bg-green-700 rounded-lg font-medium transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <DocumentDownload size={20} variant="Bulk" color="#FFFFFF" />
+                    Exporter ({selectedExtracts.length})
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button
+                    onClick={handleCancelSelection}
+                    className="flex items-center gap-2 px-6 py-3 bg-gray-200 text-gray-700 hover:bg-gray-300 rounded-lg font-medium transition-all"
+                  >
+                    <CloseCircle size={20} variant="Bulk" color="#374151" />
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={handleCreateVideo}
+                    disabled={selectedExtracts.length === 0}
+                    className="flex items-center gap-2 px-6 py-3 bg-green-600 text-white hover:bg-green-700 rounded-lg font-medium transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <TickCircle size={20} variant="Bulk" color="#FFFFFF" />
+                    Continue ({selectedExtracts.length})
+                  </Button>
+                </>
+              )
             ) : (
               <>
                 <Button
-                  onClick={() => setIsSelectionMode(true)}
+                  onClick={() => setShowImportModal(true)}
+                  className="flex items-center gap-2 px-6 py-3 bg-emerald-600 text-white hover:bg-emerald-700 rounded-lg font-medium transition-all shadow-lg hover:shadow-xl"
+                >
+                  <DocumentUpload size={20} variant="Bulk" color="#FFFFFF" />
+                  Importer
+                </Button>
+                <Button
+                  onClick={handleStartExportSelection}
+                  className="flex items-center gap-2 px-6 py-3 bg-amber-600 text-white hover:bg-amber-700 rounded-lg font-medium transition-all shadow-lg hover:shadow-xl"
+                >
+                  <DocumentDownload size={20} variant="Bulk" color="#FFFFFF" />
+                  Exporter
+                </Button>
+                <Button
+                  onClick={() => {
+                    setSelectionModeType('video');
+                    setIsSelectionMode(true);
+                  }}
                   className="flex items-center gap-2 px-6 py-3 bg-purple-600 text-white hover:bg-purple-700 rounded-lg font-medium transition-all shadow-lg hover:shadow-xl"
                 >
                   <VideoPlay size={20} variant="Bulk" color="#FFFFFF" />
@@ -330,19 +400,22 @@ const ExtractsPage: React.FC = () => {
               {filteredExtracts.map((extract) => {
                 const isSelected = selectedExtracts.includes(extract.id);
                 const isUsed = extract.isUsedInVideo;
-                const isDisabled = isSelectionMode && isUsed;
+                // For video mode, disable if already used. For export mode, allow all.
+                const isDisabled = isSelectionMode && selectionModeType === 'video' && isUsed;
+                const canClick = isSelectionMode && (selectionModeType === 'export' || !isUsed);
+                const borderColor = selectionModeType === 'export' ? 'border-amber-600 ring-amber-200' : 'border-purple-600 ring-purple-200';
 
                 return (
                 <div
                   key={extract.id}
-                  onClick={() => isSelectionMode && !isUsed && toggleExtractSelection(extract.id, isUsed)}
+                  onClick={() => canClick && toggleExtractSelection(extract.id, isUsed)}
                   className={`bg-white rounded-xl shadow-sm border-2 overflow-hidden transition-all ${
-                    isSelectionMode && !isUsed ? 'cursor-pointer' : ''
+                    canClick ? 'cursor-pointer' : ''
                   } ${
                     isDisabled ? 'opacity-50 cursor-not-allowed' : ''
                   } ${
                     isSelected
-                      ? 'border-purple-600 ring-2 ring-purple-200 shadow-lg'
+                      ? `${borderColor} ring-2 shadow-lg`
                       : 'border-gray-200 hover:shadow-lg'
                   }`}
                 >
@@ -361,8 +434,10 @@ const ExtractsPage: React.FC = () => {
                         <div className="flex items-center gap-2">
                           <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
                             isSelected
-                              ? 'bg-purple-600 border-purple-600'
-                              : isUsed
+                              ? selectionModeType === 'export'
+                                ? 'bg-amber-600 border-amber-600'
+                                : 'bg-purple-600 border-purple-600'
+                              : isDisabled
                               ? 'border-gray-400 bg-gray-200'
                               : 'border-gray-300'
                           }`}>
@@ -371,12 +446,16 @@ const ExtractsPage: React.FC = () => {
                             )}
                           </div>
                           <span className={`text-sm font-medium ${
-                            isSelected ? 'text-purple-600' : isUsed ? 'text-gray-500' : 'text-gray-500'
+                            isSelected
+                              ? selectionModeType === 'export' ? 'text-amber-600' : 'text-purple-600'
+                              : isDisabled ? 'text-gray-500' : 'text-gray-500'
                           }`}>
-                            {isSelected ? 'Selected' : isUsed ? 'Already used' : 'Click to select'}
+                            {isSelected
+                              ? selectionModeType === 'export' ? 'Sélectionné' : 'Selected'
+                              : isDisabled ? 'Already used' : selectionModeType === 'export' ? 'Cliquer pour sélectionner' : 'Click to select'}
                           </span>
                         </div>
-                        {isUsed && (
+                        {isUsed && selectionModeType === 'video' && (
                           <span className="px-2 py-1 bg-orange-100 text-orange-700 rounded text-xs font-medium">
                             In video
                           </span>
@@ -495,6 +574,20 @@ const ExtractsPage: React.FC = () => {
         confirmText="Delete"
         cancelText="Cancel"
         loading={deleting}
+      />
+
+      {/* Export Modal */}
+      <ExportModal
+        isOpen={showExportModal}
+        onClose={handleExportComplete}
+        exportType="extracts"
+        selectedIds={selectedExtracts}
+      />
+
+      {/* Import Modal */}
+      <ImportModal
+        isOpen={showImportModal}
+        onClose={handleImportComplete}
       />
     </div>
   );

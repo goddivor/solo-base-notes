@@ -484,3 +484,117 @@ export const EXTRACT_SUBTITLE_TEXT = gql`
     }
   }
 `;
+
+// ========== Export/Import Queries ==========
+
+export const EXPORT_THEMES = gql`
+  query ExportThemes($themeIds: [ID!]!) {
+    exportThemes(themeIds: $themeIds) {
+      success
+      fileName
+      data
+      metadata {
+        totalThemes
+        totalThemeGroups
+        totalExtracts
+        exportedAt
+      }
+    }
+  }
+`;
+
+export const EXPORT_THEME_GROUPS = gql`
+  query ExportThemeGroups($themeGroupIds: [ID!]!) {
+    exportThemeGroups(themeGroupIds: $themeGroupIds) {
+      success
+      fileName
+      data
+      metadata {
+        totalThemes
+        totalThemeGroups
+        totalExtracts
+        exportedAt
+      }
+    }
+  }
+`;
+
+export const EXPORT_EXTRACTS = gql`
+  query ExportExtracts($extractIds: [ID!]!) {
+    exportExtracts(extractIds: $extractIds) {
+      success
+      fileName
+      data
+      metadata {
+        totalThemes
+        totalThemeGroups
+        totalExtracts
+        exportedAt
+      }
+    }
+  }
+`;
+
+export const EXPORT_ALL = gql`
+  query ExportAll {
+    exportAll {
+      success
+      fileName
+      data
+      metadata {
+        totalThemes
+        totalThemeGroups
+        totalExtracts
+        exportedAt
+      }
+    }
+  }
+`;
+
+export const PREVIEW_IMPORT = gql`
+  query PreviewImport($input: ImportDataInput!) {
+    previewImport(input: $input) {
+      themes {
+        originalId
+        name
+        description
+        color
+        extractCount
+      }
+      themeGroups {
+        originalId
+        name
+        description
+        color
+        themeCount
+      }
+      extracts {
+        originalId
+        text
+        animeTitle
+        themeName
+      }
+      conflicts {
+        type
+        importedItem {
+          id
+          name
+          description
+          color
+        }
+        existingItem {
+          id
+          name
+          description
+          color
+        }
+      }
+      summary {
+        totalThemes
+        totalThemeGroups
+        totalExtracts
+        conflictsCount
+      }
+    }
+  }
+`;

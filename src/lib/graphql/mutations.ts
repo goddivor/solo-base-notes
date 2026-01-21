@@ -286,3 +286,18 @@ export const TRANSLATE_TEXT = gql`
     translateText(text: $text)
   }
 `;
+
+// ========== Import Mutation ==========
+
+export const EXECUTE_IMPORT = gql`
+  mutation ExecuteImport($input: ExecuteImportInput!) {
+    executeImport(input: $input) {
+      success
+      createdThemes
+      createdThemeGroups
+      createdExtracts
+      skippedItems
+      errors
+    }
+  }
+`;

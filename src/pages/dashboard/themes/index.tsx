@@ -9,7 +9,7 @@ import {
   UPDATE_THEME_GROUP,
   DELETE_THEME_GROUP,
 } from '../../../lib/graphql/mutations';
-import { Add, Edit2, Trash, TickCircle, CloseCircle, Graph, MagicStar, SearchNormal1, VideoPlay } from 'iconsax-react';
+import { Add, Edit2, Trash, TickCircle, CloseCircle, Graph, MagicStar, SearchNormal1, VideoPlay, DocumentDownload, DocumentUpload } from 'iconsax-react';
 import Button from '../../../components/actions/button';
 import { Input } from '@/components/forms/Input';
 import { Textarea } from '@/components/forms/Textarea';
@@ -17,6 +17,7 @@ import ActionConfirmationModal from '../../../components/modals/ActionConfirmati
 import ThemeGroupGraphModal from '../../../components/themes/ThemeGroupGraphModal';
 import ThemeGroupVideoCreationModal from '../../../components/themes/ThemeGroupVideoCreationModal';
 import CustomThemeGroupSuggestionModal from '../../../components/themes/CustomThemeGroupSuggestionModal';
+import { ExportModal, ImportModal } from '../../../components/export-import';
 import { useToast } from '../../../context/toast-context';
 
 interface Theme {
@@ -76,6 +77,13 @@ const ThemesPage: React.FC = () => {
   const [showCustomSuggestionModal, setShowCustomSuggestionModal] = useState(false);
   const [showVideoCreationModal, setShowVideoCreationModal] = useState(false);
   const [selectedGroupForVideo, setSelectedGroupForVideo] = useState<ThemeGroup | null>(null);
+
+  // Export/Import states
+  const [isSelectionMode, setIsSelectionMode] = useState(false);
+  const [selectedExportThemeIds, setSelectedExportThemeIds] = useState<string[]>([]);
+  const [selectedExportGroupIds, setSelectedExportGroupIds] = useState<string[]>([]);
+  const [showExportModal, setShowExportModal] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
 
   const { data: themesData, loading: themesLoading, refetch: refetchThemes } = useQuery(GET_THEMES);
   const { data: themeGroupsData, loading: themeGroupsLoading, refetch: refetchThemeGroups } = useQuery(GET_THEME_GROUPS);
@@ -347,6 +355,65 @@ const ThemesPage: React.FC = () => {
     }
   };
 
+  // Export/Import handlers
+  const toggleExportThemeSelection = (themeId: string) => {
+    setSelectedExportThemeIds(prev =>
+      prev.includes(themeId) ? prev.filter(id => id !== themeId) : [...prev, themeId]
+    );
+  };
+
+  const toggleExportGroupSelection = (groupId: string) => {
+    setSelectedExportGroupIds(prev =>
+      prev.includes(groupId) ? prev.filter(id => id !== groupId) : [...prev, groupId]
+    );
+  };
+
+  const handleToggleSelectionMode = () => {
+    if (isSelectionMode) {
+      // Exiting selection mode - clear selections
+      setSelectedExportThemeIds([]);
+      setSelectedExportGroupIds([]);
+    }
+    setIsSelectionMode(!isSelectionMode);
+  };
+
+  const handleSelectAll = () => {
+    if (activeTab === 'mini-themes') {
+      if (selectedExportThemeIds.length === filteredThemes.length) {
+        setSelectedExportThemeIds([]);
+      } else {
+        setSelectedExportThemeIds(filteredThemes.map((t: Theme) => t.id));
+      }
+    } else {
+      if (selectedExportGroupIds.length === filteredGroups.length) {
+        setSelectedExportGroupIds([]);
+      } else {
+        setSelectedExportGroupIds(filteredGroups.map((g: ThemeGroup) => g.id));
+      }
+    }
+  };
+
+  const handleOpenExportModal = () => {
+    setShowExportModal(true);
+  };
+
+  const handleCloseExportModal = () => {
+    setShowExportModal(false);
+  };
+
+  const handleOpenImportModal = () => {
+    setShowImportModal(true);
+  };
+
+  const handleCloseImportModal = () => {
+    setShowImportModal(false);
+  };
+
+  const handleImportComplete = () => {
+    refetchThemes();
+    refetchThemeGroups();
+  };
+
   const themes = themesData?.themes || [];
   const themeGroups = themeGroupsData?.themeGroups || [];
   const suggestions: ThemeGroupSuggestion[] = suggestionsData?.suggestThemeGroups || [];
@@ -418,41 +485,94 @@ const ThemesPage: React.FC = () => {
 
           {/* Action Buttons */}
           <div className="flex gap-3">
-            {activeTab === 'theme-groups' && themes.length >= 2 && (
+            {/* Import Button */}
+            <Button
+              onClick={handleOpenImportModal}
+              className="flex items-center gap-2 px-4 py-3 border-2 border-blue-300 text-blue-600 hover:bg-blue-50 rounded-lg font-medium transition-all"
+            >
+              <DocumentUpload size={20} color="#2563EB" />
+              <span>Importer</span>
+            </Button>
+
+            {/* Selection Mode Toggle */}
+            <Button
+              onClick={handleToggleSelectionMode}
+              className={`flex items-center gap-2 px-4 py-3 rounded-lg font-medium transition-all ${
+                isSelectionMode
+                  ? 'bg-blue-600 text-white hover:bg-blue-700'
+                  : 'border-2 border-gray-300 text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              <DocumentDownload size={20} color={isSelectionMode ? '#FFFFFF' : '#374151'} />
+              <span>{isSelectionMode ? 'Mode Export' : 'Exporter'}</span>
+            </Button>
+
+            {/* Selection actions when in selection mode */}
+            {isSelectionMode && (
               <>
                 <Button
-                  onClick={handleGetSuggestions}
-                  disabled={loadingSuggestions}
-                  className="flex items-center gap-2 px-6 py-3 bg-purple-600 text-white hover:bg-purple-700 rounded-lg font-medium transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                  onClick={handleSelectAll}
+                  className="flex items-center gap-2 px-4 py-3 border-2 border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg font-medium transition-all"
                 >
-                  {loadingSuggestions ? (
-                    <>
-                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                      <span>Génération...</span>
-                    </>
-                  ) : (
-                    <>
-                      <MagicStar size={20} variant="Bulk" color="#FFFFFF" />
-                      <span>Suggestions IA</span>
-                    </>
-                  )}
+                  <TickCircle size={20} color="#374151" />
+                  <span>
+                    {(activeTab === 'mini-themes' ? selectedExportThemeIds.length === filteredThemes.length : selectedExportGroupIds.length === filteredGroups.length)
+                      ? 'Désélectionner tout'
+                      : 'Tout sélectionner'}
+                  </span>
                 </Button>
                 <Button
-                  onClick={() => setShowCustomSuggestionModal(true)}
-                  className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700 rounded-lg font-medium transition-all shadow-lg hover:shadow-xl"
+                  onClick={handleOpenExportModal}
+                  disabled={(activeTab === 'mini-themes' ? selectedExportThemeIds.length : selectedExportGroupIds.length) === 0}
+                  className="flex items-center gap-2 px-4 py-3 bg-green-600 text-white hover:bg-green-700 rounded-lg font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <MagicStar size={20} variant="Bulk" color="#FFFFFF" />
-                  <span>Suggestion Personnalisée</span>
+                  <DocumentDownload size={20} color="#FFFFFF" />
+                  <span>
+                    Exporter ({activeTab === 'mini-themes' ? selectedExportThemeIds.length : selectedExportGroupIds.length})
+                  </span>
                 </Button>
               </>
             )}
-            <Button
-              onClick={() => activeTab === 'mini-themes' ? openThemeModal() : openThemeGroupModal()}
-              className="flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white hover:bg-indigo-700 rounded-lg font-medium transition-all shadow-lg hover:shadow-xl"
-            >
-              <Add size={20} variant="Bulk" color="#FFFFFF" />
-              {activeTab === 'mini-themes' ? 'Nouveau Mini-Thème' : 'Nouveau Groupe'}
-            </Button>
+
+            {!isSelectionMode && (
+              <>
+                {activeTab === 'theme-groups' && themes.length >= 2 && (
+                  <>
+                    <Button
+                      onClick={handleGetSuggestions}
+                      disabled={loadingSuggestions}
+                      className="flex items-center gap-2 px-6 py-3 bg-purple-600 text-white hover:bg-purple-700 rounded-lg font-medium transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {loadingSuggestions ? (
+                        <>
+                          <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                          <span>Génération...</span>
+                        </>
+                      ) : (
+                        <>
+                          <MagicStar size={20} variant="Bulk" color="#FFFFFF" />
+                          <span>Suggestions IA</span>
+                        </>
+                      )}
+                    </Button>
+                    <Button
+                      onClick={() => setShowCustomSuggestionModal(true)}
+                      className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700 rounded-lg font-medium transition-all shadow-lg hover:shadow-xl"
+                    >
+                      <MagicStar size={20} variant="Bulk" color="#FFFFFF" />
+                      <span>Suggestion Personnalisée</span>
+                    </Button>
+                  </>
+                )}
+                <Button
+                  onClick={() => activeTab === 'mini-themes' ? openThemeModal() : openThemeGroupModal()}
+                  className="flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white hover:bg-indigo-700 rounded-lg font-medium transition-all shadow-lg hover:shadow-xl"
+                >
+                  <Add size={20} variant="Bulk" color="#FFFFFF" />
+                  {activeTab === 'mini-themes' ? 'Nouveau Mini-Thème' : 'Nouveau Groupe'}
+                </Button>
+              </>
+            )}
           </div>
         </div>
 
@@ -501,12 +621,32 @@ const ThemesPage: React.FC = () => {
                     {filteredThemes.map((theme: Theme) => (
                   <div
                     key={theme.id}
-                    className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow"
+                    onClick={isSelectionMode ? () => toggleExportThemeSelection(theme.id) : undefined}
+                    className={`bg-white rounded-xl shadow-sm border overflow-hidden transition-all ${
+                      isSelectionMode
+                        ? selectedExportThemeIds.includes(theme.id)
+                          ? 'border-blue-500 ring-2 ring-blue-200 cursor-pointer'
+                          : 'border-gray-200 hover:border-blue-300 cursor-pointer'
+                        : 'border-gray-200 hover:shadow-lg'
+                    }`}
                   >
                     <div
-                      className="h-24 flex items-center justify-center"
+                      className="h-24 flex items-center justify-center relative"
                       style={{ backgroundColor: theme.color }}
                     >
+                      {isSelectionMode && (
+                        <div className="absolute top-3 left-3">
+                          <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
+                            selectedExportThemeIds.includes(theme.id)
+                              ? 'bg-blue-600 border-blue-600'
+                              : 'bg-white/80 border-white'
+                          }`}>
+                            {selectedExportThemeIds.includes(theme.id) && (
+                              <TickCircle size={16} variant="Bold" color="#FFFFFF" />
+                            )}
+                          </div>
+                        </div>
+                      )}
                       <h3 className="text-xl font-bold text-white text-center px-4">
                         {theme.name}
                       </h3>
@@ -525,22 +665,24 @@ const ThemesPage: React.FC = () => {
                           </span>
                         </div>
                       </div>
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => openThemeModal(theme)}
-                          className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors"
-                        >
-                          <Edit2 size={16} variant="Bulk" color="#4F46E5" />
-                          Modifier
-                        </button>
-                        <button
-                          onClick={() => handleDeleteClick(theme.id, theme.name, 'theme')}
-                          className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
-                        >
-                          <Trash size={16} variant="Bulk" color="#DC2626" />
-                          Supprimer
-                        </button>
-                      </div>
+                      {!isSelectionMode && (
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => openThemeModal(theme)}
+                            className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors"
+                          >
+                            <Edit2 size={16} variant="Bulk" color="#4F46E5" />
+                            Modifier
+                          </button>
+                          <button
+                            onClick={() => handleDeleteClick(theme.id, theme.name, 'theme')}
+                            className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
+                          >
+                            <Trash size={16} variant="Bulk" color="#DC2626" />
+                            Supprimer
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
                     ))}
@@ -589,12 +731,32 @@ const ThemesPage: React.FC = () => {
                     {filteredGroups.map((group: ThemeGroup) => (
                   <div
                     key={group.id}
-                    className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow"
+                    onClick={isSelectionMode ? () => toggleExportGroupSelection(group.id) : undefined}
+                    className={`bg-white rounded-xl shadow-sm border overflow-hidden transition-all ${
+                      isSelectionMode
+                        ? selectedExportGroupIds.includes(group.id)
+                          ? 'border-blue-500 ring-2 ring-blue-200 cursor-pointer'
+                          : 'border-gray-200 hover:border-blue-300 cursor-pointer'
+                        : 'border-gray-200 hover:shadow-lg'
+                    }`}
                   >
                     <div
-                      className="h-24 flex items-center justify-center"
+                      className="h-24 flex items-center justify-center relative"
                       style={{ backgroundColor: group.color }}
                     >
+                      {isSelectionMode && (
+                        <div className="absolute top-3 left-3">
+                          <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
+                            selectedExportGroupIds.includes(group.id)
+                              ? 'bg-blue-600 border-blue-600'
+                              : 'bg-white/80 border-white'
+                          }`}>
+                            {selectedExportGroupIds.includes(group.id) && (
+                              <TickCircle size={16} variant="Bold" color="#FFFFFF" />
+                            )}
+                          </div>
+                        </div>
+                      )}
                       <h3 className="text-xl font-bold text-white text-center px-4">
                         {group.name}
                       </h3>
@@ -641,38 +803,40 @@ const ThemesPage: React.FC = () => {
                           )}
                         </div>
                       )}
-                      <div className="space-y-2">
-                        <button
-                          onClick={() => handleOpenVideoCreation(group)}
-                          className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-purple-600 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors"
-                        >
-                          <VideoPlay size={16} variant="Bulk" color="#9333EA" />
-                          Créer une Vidéo
-                        </button>
-                        <button
-                          onClick={() => handleOpenGraph(group)}
-                          className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-green-600 bg-green-50 hover:bg-green-100 rounded-lg transition-colors"
-                        >
-                          <Graph size={16} variant="Bulk" color="#16A34A" />
-                          Visualiser
-                        </button>
-                        <div className="flex gap-2">
+                      {!isSelectionMode && (
+                        <div className="space-y-2">
                           <button
-                            onClick={() => openThemeGroupModal(group)}
-                            className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors"
+                            onClick={() => handleOpenVideoCreation(group)}
+                            className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-purple-600 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors"
                           >
-                            <Edit2 size={16} variant="Bulk" color="#4F46E5" />
-                            Modifier
+                            <VideoPlay size={16} variant="Bulk" color="#9333EA" />
+                            Créer une Vidéo
                           </button>
                           <button
-                            onClick={() => handleDeleteClick(group.id, group.name, 'group')}
-                            className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
+                            onClick={() => handleOpenGraph(group)}
+                            className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-green-600 bg-green-50 hover:bg-green-100 rounded-lg transition-colors"
                           >
-                            <Trash size={16} variant="Bulk" color="#DC2626" />
-                            Supprimer
+                            <Graph size={16} variant="Bulk" color="#16A34A" />
+                            Visualiser
                           </button>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => openThemeGroupModal(group)}
+                              className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors"
+                            >
+                              <Edit2 size={16} variant="Bulk" color="#4F46E5" />
+                              Modifier
+                            </button>
+                            <button
+                              onClick={() => handleDeleteClick(group.id, group.name, 'group')}
+                              className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
+                            >
+                              <Trash size={16} variant="Bulk" color="#DC2626" />
+                              Supprimer
+                            </button>
+                          </div>
                         </div>
-                      </div>
+                      )}
                     </div>
                   </div>
                     ))}
@@ -1066,6 +1230,21 @@ const ThemesPage: React.FC = () => {
       <CustomThemeGroupSuggestionModal
         isOpen={showCustomSuggestionModal}
         onClose={() => setShowCustomSuggestionModal(false)}
+      />
+
+      {/* Export Modal */}
+      <ExportModal
+        isOpen={showExportModal}
+        onClose={handleCloseExportModal}
+        exportType={activeTab === 'mini-themes' ? 'themes' : 'themeGroups'}
+        selectedIds={activeTab === 'mini-themes' ? selectedExportThemeIds : selectedExportGroupIds}
+      />
+
+      {/* Import Modal */}
+      <ImportModal
+        isOpen={showImportModal}
+        onClose={handleCloseImportModal}
+        onImportComplete={handleImportComplete}
       />
     </div>
   );
