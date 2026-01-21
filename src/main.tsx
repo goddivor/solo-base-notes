@@ -6,14 +6,17 @@ import { ToastContainer } from "./components/Toast";
 import { ApolloProvider } from "@apollo/client";
 import { apolloClient } from "./lib/apollo-client";
 import { AuthProvider } from "./context/auth-context";
+import { ThemeProvider } from "./context/theme-context";
 
 createRoot(document.getElementById("root")!).render(
   <ApolloProvider client={apolloClient}>
     <AuthProvider>
-      <ToastProvider>
-        <AppRouter />
-        <ToastContainer />
-      </ToastProvider>
+      <ThemeProvider>
+        <ToastProvider>
+          <AppRouter />
+          <ToastContainer />
+        </ToastProvider>
+      </ThemeProvider>
     </AuthProvider>
   </ApolloProvider>
 );
