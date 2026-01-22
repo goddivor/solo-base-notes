@@ -660,14 +660,30 @@ const ExtractsPage = () => {
                         />
                       )}
                       <div className="flex-1 min-w-0">
-                        <h3
-                          className={cn(
-                            "text-base font-bold mb-1 truncate",
-                            theme === "dark" ? "text-white" : "text-gray-900"
+                        <div className="flex items-start justify-between gap-2 mb-1">
+                          <h3
+                            className={cn(
+                              "text-base font-bold truncate",
+                              theme === "dark" ? "text-white" : "text-gray-900"
+                            )}
+                          >
+                            {extract.animeTitle}
+                          </h3>
+                          {/* Video Usage Badge - Hidden in video selection mode to avoid duplicate */}
+                          {isUsed && !(isSelectionMode && selectionModeType === "video") && (
+                            <span
+                              className={cn(
+                                "flex-shrink-0 flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium",
+                                theme === "dark"
+                                  ? "bg-green-500/10 text-green-400"
+                                  : "bg-green-100 text-green-700"
+                              )}
+                            >
+                              <VideoPlay size={12} variant="Bold" color={theme === "dark" ? "#4ade80" : "#15803d"} />
+                              Dans une vidéo
+                            </span>
                           )}
-                        >
-                          {extract.animeTitle}
-                        </h3>
+                        </div>
                         {extract.theme && (
                           <div
                             className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs font-medium text-white mb-2"
