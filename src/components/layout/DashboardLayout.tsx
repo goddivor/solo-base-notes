@@ -33,31 +33,31 @@ const DashboardLayout = () => {
   const navItems = [
     {
       path: "/dashboard",
-      label: "Home",
+      label: "Accueil",
       icon: Home2,
       end: true,
     },
     {
       path: "/dashboard/extracts",
-      label: "Extracts",
+      label: "Extraits",
       icon: DocumentText1,
       end: true,
     },
     {
       path: "/dashboard/themes",
-      label: "Themes",
+      label: "Thèmes",
       icon: Category,
       end: true,
     },
     {
       path: "/dashboard/videos",
-      label: "Videos",
+      label: "Vidéos",
       icon: VideoPlay,
       end: true,
     },
     {
       path: "/dashboard/published-videos",
-      label: "Published",
+      label: "Publiées",
       icon: Link21,
       end: true,
     },
@@ -101,7 +101,7 @@ const DashboardLayout = () => {
                     theme === "dark" ? "text-gray-500" : "text-gray-400"
                   )}
                 >
-                  Anime Content Studio
+                  Studio de contenu anime
                 </p>
               </div>
             </NavLink>
@@ -152,7 +152,7 @@ const DashboardLayout = () => {
                     ? "text-gray-400 hover:text-white hover:bg-white/5"
                     : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
                 )}
-                title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+                title={theme === "dark" ? "Passer en mode clair" : "Passer en mode sombre"}
               >
                 {theme === "dark" ? (
                   <Sun1 size={20} color="#9ca3af" variant="Bold" />
@@ -169,7 +169,7 @@ const DashboardLayout = () => {
                     ? "text-gray-400 hover:text-white hover:bg-white/5"
                     : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
                 )}
-                title="Settings"
+                title="Paramètres"
               >
                 <Setting2
                   size={20}
@@ -205,7 +205,7 @@ const DashboardLayout = () => {
                   )}
                 >
                   <Logout size={18} variant="Outline" color={theme === "dark" ? "#f87171" : "#ef4444"} />
-                  <span className="hidden sm:inline">Logout</span>
+                  <span className="hidden sm:inline">Déconnexion</span>
                 </button>
               </div>
             </div>
@@ -258,10 +258,10 @@ const DashboardLayout = () => {
       {/* Logout Confirmation Modal */}
       <ConfirmationModal
         ref={logoutModalRef}
-        title="Logout"
-        message="Are you sure you want to logout?"
-        confirmText="Logout"
-        cancelText="Cancel"
+        title="Déconnexion"
+        message="Êtes-vous sûr de vouloir vous déconnecter ?"
+        confirmText="Déconnexion"
+        cancelText="Annuler"
         type="danger"
         onConfirm={handleLogoutConfirm}
       />
