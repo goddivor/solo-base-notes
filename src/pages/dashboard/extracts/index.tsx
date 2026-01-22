@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useQuery, useMutation } from "@apollo/client";
 import { useNavigate } from "react-router";
 import { GET_EXTRACTS, GET_THEMES, GET_THEME_GROUPS } from "../../../lib/graphql/queries";
@@ -17,6 +17,9 @@ import {
   DocumentUpload,
   SearchNormal1,
   Filter,
+  Grid2,
+  Element3,
+  RowVertical,
 } from "iconsax-react";
 import Button from "../../../components/actions/button";
 import ActionConfirmationModal from "../../../components/modals/ActionConfirmationModal";
@@ -77,6 +80,15 @@ const ExtractsPage = () => {
   const [showExportModal, setShowExportModal] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
   const [selectionModeType, setSelectionModeType] = useState<"video" | "export">("video");
+  const [viewMode, setViewMode] = useState<"detailed" | "card" | "list">(() => {
+    const saved = localStorage.getItem("extracts-view-mode");
+    return (saved as "detailed" | "card" | "list") || "detailed";
+  });
+
+  // Persist view mode to localStorage
+  useEffect(() => {
+    localStorage.setItem("extracts-view-mode", viewMode);
+  }, [viewMode]);
 
   const { data: themesData } = useQuery(GET_THEMES);
   const { data: themeGroupsData } = useQuery(GET_THEME_GROUPS);
@@ -493,9 +505,65 @@ const ExtractsPage = () => {
       {/* Extracts Grid */}
       {!loading && filteredExtracts.length > 0 && (
         <div>
-          <div className={cn("mb-4 text-sm", theme === "dark" ? "text-gray-500" : "text-gray-500")}>
-            {filteredExtracts.length} extrait{filteredExtracts.length > 1 ? "s" : ""} trouvé{filteredExtracts.length > 1 ? "s" : ""}
+          {/* Results Header with View Toggle */}
+          <div className="mb-4 flex items-center justify-between">
+            <div className={cn("text-sm", theme === "dark" ? "text-gray-500" : "text-gray-500")}>
+              {filteredExtracts.length} extrait{filteredExtracts.length > 1 ? "s" : ""} trouvé{filteredExtracts.length > 1 ? "s" : ""}
+            </div>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setViewMode("detailed")}
+                className={cn(
+                  "p-2 rounded-lg transition-all",
+                  viewMode === "detailed"
+                    ? theme === "dark"
+                      ? "bg-purple-500/20 text-purple-400"
+                      : "bg-purple-100 text-purple-600"
+                    : theme === "dark"
+                    ? "text-gray-500 hover:bg-white/5 hover:text-gray-300"
+                    : "text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+                )}
+                title="Vue détaillée"
+              >
+                <Element3 size={20} variant={viewMode === "detailed" ? "Bold" : "Outline"} color={viewMode === "detailed" ? (theme === "dark" ? "#a855f7" : "#9333ea") : (theme === "dark" ? "#6b7280" : "#9ca3af")} />
+              </button>
+              <button
+                onClick={() => setViewMode("card")}
+                className={cn(
+                  "p-2 rounded-lg transition-all",
+                  viewMode === "card"
+                    ? theme === "dark"
+                      ? "bg-purple-500/20 text-purple-400"
+                      : "bg-purple-100 text-purple-600"
+                    : theme === "dark"
+                    ? "text-gray-500 hover:bg-white/5 hover:text-gray-300"
+                    : "text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+                )}
+                title="Vue carte"
+              >
+                <Grid2 size={20} variant={viewMode === "card" ? "Bold" : "Outline"} color={viewMode === "card" ? (theme === "dark" ? "#a855f7" : "#9333ea") : (theme === "dark" ? "#6b7280" : "#9ca3af")} />
+              </button>
+              <button
+                onClick={() => setViewMode("list")}
+                className={cn(
+                  "p-2 rounded-lg transition-all",
+                  viewMode === "list"
+                    ? theme === "dark"
+                      ? "bg-purple-500/20 text-purple-400"
+                      : "bg-purple-100 text-purple-600"
+                    : theme === "dark"
+                    ? "text-gray-500 hover:bg-white/5 hover:text-gray-300"
+                    : "text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+                )}
+                title="Vue liste"
+              >
+                <RowVertical size={20} variant={viewMode === "list" ? "Bold" : "Outline"} color={viewMode === "list" ? (theme === "dark" ? "#a855f7" : "#9333ea") : (theme === "dark" ? "#6b7280" : "#9ca3af")} />
+              </button>
+            </div>
           </div>
+
+          {/* Detailed View (Original) */}
+          {viewMode === "detailed" && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {filteredExtracts.map((extract) => {
               const isSelected = selectedExtracts.includes(extract.id);
@@ -723,6 +791,478 @@ const ExtractsPage = () => {
               );
             })}
           </div>
+          )}
+
+          {/* Card View (Compact Visual Cards) */}
+          {viewMode === "card" && (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+            {filteredExtracts.map((extract, index) => {
+              const isSelected = selectedExtracts.includes(extract.id);
+              const isUsed = extract.isUsedInVideo;
+              const isDisabled = isSelectionMode && selectionModeType === "video" && isUsed;
+              const canClick = isSelectionMode && (selectionModeType === "export" || !isUsed);
+
+              // Calculate tooltip position based on card position in responsive grid
+              // Mobile: 2 cols, sm: 3 cols, lg: 4 cols, xl: 5 cols
+              const isRightSideMobile = index % 2 === 1;
+              const isRightSideSm = index % 3 >= 2;
+              const isRightSideLg = index % 4 >= 2;
+              const isRightSideXl = index % 5 >= 3;
+
+              return (
+                <div
+                  key={extract.id}
+                  className="relative group/card"
+                >
+                  {/* Main Card */}
+                  <div
+                    onClick={() => canClick && toggleExtractSelection(extract.id, isUsed)}
+                    className={cn(
+                      "relative rounded-2xl overflow-hidden transition-all aspect-[3/4]",
+                      canClick && "cursor-pointer",
+                      isDisabled && "opacity-50 cursor-not-allowed",
+                      isSelected
+                        ? selectionModeType === "export"
+                          ? "ring-2 ring-amber-500"
+                          : "ring-2 ring-purple-500"
+                        : theme === "dark"
+                        ? "bg-[#12121a] hover:ring-1 hover:ring-gray-700"
+                        : "bg-white hover:ring-1 hover:ring-gray-300 shadow-sm hover:shadow-md"
+                    )}
+                  >
+                    {/* Background Image */}
+                    {extract.animeImage && (
+                      <div className="absolute inset-0">
+                        <img
+                          src={extract.animeImage}
+                          alt={extract.animeTitle}
+                          className="w-full h-full object-cover"
+                        />
+                        <div className={cn(
+                          "absolute inset-0",
+                          theme === "dark"
+                            ? "bg-gradient-to-t from-black/90 via-black/50 to-transparent"
+                            : "bg-gradient-to-t from-black/80 via-black/40 to-transparent"
+                        )} />
+                      </div>
+                    )}
+
+                    {/* Selection Indicator */}
+                    {isSelectionMode && (
+                      <div className="absolute top-2 right-2 z-10">
+                        <div
+                          className={cn(
+                            "w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all",
+                            isSelected
+                              ? selectionModeType === "export"
+                                ? "bg-amber-500 border-amber-500"
+                                : "bg-purple-500 border-purple-500"
+                              : "border-white/50 bg-black/30"
+                          )}
+                        >
+                          {isSelected && <TickCircle size={14} variant="Bold" color="#ffffff" />}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Used Badge */}
+                    {isUsed && (
+                      <div className="absolute top-2 left-2 z-10">
+                        <span className="px-2 py-0.5 rounded-lg text-[10px] font-medium bg-orange-500/80 text-white">
+                          Utilisé
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Theme Bar */}
+                    {extract.theme && (
+                      <div className="absolute top-0 left-0 right-0 h-1" style={{ backgroundColor: extract.theme.color }} />
+                    )}
+
+                    {/* Content Overlay */}
+                    <div className="absolute bottom-0 left-0 right-0 p-3">
+                      {/* Theme Badge */}
+                      {extract.theme && (
+                        <span
+                          className="inline-block px-2 py-0.5 rounded-lg text-[10px] font-medium text-white mb-2"
+                          style={{ backgroundColor: extract.theme.color }}
+                        >
+                          {extract.theme.name}
+                        </span>
+                      )}
+
+                      {/* Anime Title */}
+                      <h3 className="text-white text-sm font-bold mb-1 line-clamp-1">
+                        {extract.animeTitle}
+                      </h3>
+
+                      {/* Quote Preview */}
+                      <p className="text-white/80 text-xs italic line-clamp-2 mb-2">
+                        "{extract.text}"
+                      </p>
+
+                      {/* Episode & Time */}
+                      <div className="flex items-center gap-2 text-[10px] text-white/60">
+                        {extract.episode && <span>Ep. {extract.episode}</span>}
+                        <span>{extract.timing.start}</span>
+                      </div>
+                    </div>
+
+                    {/* Hover Actions */}
+                    {!isSelectionMode && (
+                      <div className={cn(
+                        "absolute inset-0 flex items-center justify-center gap-2 opacity-0 group-hover/card:opacity-100 transition-all",
+                        theme === "dark" ? "bg-black/60" : "bg-black/50"
+                      )}>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/dashboard/extracts/${extract.id}/edit`);
+                          }}
+                          className="p-2 rounded-xl bg-purple-500 text-white hover:bg-purple-400 transition-colors"
+                        >
+                          <Edit2 size={18} variant="Bold" color="#ffffff" />
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteClick(extract.id, extract.text);
+                          }}
+                          className="p-2 rounded-xl bg-red-500 text-white hover:bg-red-400 transition-colors"
+                        >
+                          <Trash size={18} variant="Bold" color="#ffffff" />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Tooltip with full details */}
+                  <div className={cn(
+                    "absolute top-0 bottom-0 w-72 sm:w-80 p-3 rounded-2xl border z-50",
+                    "opacity-0 invisible group-hover/card:opacity-100 group-hover/card:visible",
+                    "transition-all duration-200 pointer-events-none overflow-hidden flex flex-col",
+                    // Position: right side by default, left side when card is on the right
+                    isRightSideMobile ? "right-full mr-3" : "left-full ml-3",
+                    isRightSideSm ? "sm:right-full sm:mr-3 sm:left-auto sm:ml-0" : "sm:left-full sm:ml-3 sm:right-auto sm:mr-0",
+                    isRightSideLg ? "lg:right-full lg:mr-3 lg:left-auto lg:ml-0" : "lg:left-full lg:ml-3 lg:right-auto lg:mr-0",
+                    isRightSideXl ? "xl:right-full xl:mr-3 xl:left-auto xl:ml-0" : "xl:left-full xl:ml-3 xl:right-auto xl:mr-0",
+                    theme === "dark"
+                      ? "bg-[#1a1a25] border-gray-700 shadow-xl shadow-black/50"
+                      : "bg-white border-gray-200 shadow-xl"
+                  )}>
+                    {/* Content layout - fills height */}
+                    <div className="flex flex-col flex-1 min-h-0">
+                      {/* Title + Theme + Episode */}
+                      <div className="mb-2 flex-shrink-0">
+                        <h4 className={cn(
+                          "font-bold text-sm leading-tight mb-1",
+                          theme === "dark" ? "text-white" : "text-gray-900"
+                        )}>
+                          {extract.animeTitle}
+                        </h4>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          {extract.theme && (
+                            <span
+                              className="inline-block px-2 py-0.5 rounded text-[10px] font-medium text-white"
+                              style={{ backgroundColor: extract.theme.color }}
+                            >
+                              {extract.theme.name}
+                            </span>
+                          )}
+                          <span className={cn(
+                            "text-[10px]",
+                            theme === "dark" ? "text-gray-500" : "text-gray-500"
+                          )}>
+                            {extract.episode && `Ep. ${extract.episode} • `}{extract.timing.start} - {extract.timing.end}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Quote - scrollable, fills remaining space */}
+                      <div className={cn(
+                        "flex-1 p-2 rounded-lg overflow-y-auto min-h-0",
+                        theme === "dark" ? "bg-white/5" : "bg-gray-50"
+                      )}>
+                        <p className={cn(
+                          "text-xs italic leading-relaxed",
+                          theme === "dark" ? "text-gray-300" : "text-gray-700"
+                        )}>
+                          "{extract.text}"
+                        </p>
+                      </div>
+
+                      {/* Bottom section */}
+                      <div className="flex-shrink-0 mt-2 space-y-2">
+                        {/* Characters with images */}
+                        {extract.characters.length > 0 && (
+                          <div className="flex flex-wrap gap-1.5">
+                            {extract.characters.map((char) => (
+                              <div
+                                key={char.malId}
+                                className={cn(
+                                  "flex items-center gap-1.5 px-2 py-1 rounded-lg text-[10px] font-medium",
+                                  theme === "dark"
+                                    ? "bg-purple-500/10 text-purple-400"
+                                    : "bg-purple-50 text-purple-700"
+                                )}
+                              >
+                                {char.image && (
+                                  <img
+                                    src={char.image}
+                                    alt={char.name}
+                                    className="w-4 h-4 rounded-full object-cover"
+                                  />
+                                )}
+                                <span>{char.name}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* Status */}
+                        <div className="flex items-center gap-2">
+                          {isUsed && (
+                            <span className={cn(
+                              "px-1.5 py-0.5 rounded text-[9px] font-medium",
+                              theme === "dark" ? "bg-orange-500/20 text-orange-400" : "bg-orange-100 text-orange-700"
+                            )}>
+                              Utilisé
+                            </span>
+                          )}
+                          {extract.createdAt && (
+                            <span className={cn(
+                              "text-[9px]",
+                              theme === "dark" ? "text-gray-600" : "text-gray-400"
+                            )}>
+                              {(() => {
+                                const date = new Date(Number(extract.createdAt) || extract.createdAt);
+                                return isNaN(date.getTime()) ? '' : date.toLocaleDateString('fr-FR');
+                              })()}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          )}
+
+          {/* List View (Table-like) */}
+          {viewMode === "list" && (
+          <div className={cn(
+            "rounded-2xl border overflow-hidden",
+            theme === "dark" ? "bg-[#12121a] border-gray-800" : "bg-white border-gray-200"
+          )}>
+            {/* Table Header */}
+            <div className={cn(
+              "hidden lg:grid lg:grid-cols-12 gap-4 px-4 py-3 text-xs font-semibold uppercase tracking-wide",
+              theme === "dark" ? "bg-white/5 text-gray-500 border-b border-gray-800" : "bg-gray-50 text-gray-500 border-b border-gray-200"
+            )}>
+              <div className="col-span-2">Anime</div>
+              <div className="col-span-3">Extrait</div>
+              <div className="col-span-2">Personnages</div>
+              <div className="col-span-2">Thème</div>
+              <div className="col-span-2">Épisode</div>
+              <div className="col-span-1">Actions</div>
+            </div>
+
+            {/* Table Body */}
+            <div className={cn(
+              "divide-y",
+              theme === "dark" ? "divide-gray-800" : "divide-gray-200"
+            )}>
+              {filteredExtracts.map((extract) => {
+                const isSelected = selectedExtracts.includes(extract.id);
+                const isUsed = extract.isUsedInVideo;
+                const isDisabled = isSelectionMode && selectionModeType === "video" && isUsed;
+                const canClick = isSelectionMode && (selectionModeType === "export" || !isUsed);
+
+                return (
+                  <div
+                    key={extract.id}
+                    onClick={() => canClick && toggleExtractSelection(extract.id, isUsed)}
+                    className={cn(
+                      "flex flex-col lg:grid lg:grid-cols-12 gap-4 px-4 py-4 transition-all",
+                      canClick && "cursor-pointer",
+                      isDisabled && "opacity-50 cursor-not-allowed",
+                      isSelected
+                        ? selectionModeType === "export"
+                          ? "bg-amber-500/10"
+                          : "bg-purple-500/10"
+                        : theme === "dark"
+                        ? "hover:bg-white/5"
+                        : "hover:bg-gray-50"
+                    )}
+                  >
+                    {/* Anime: Image + Title */}
+                    <div className="col-span-2 flex items-center gap-3">
+                      {isSelectionMode && (
+                        <div
+                          className={cn(
+                            "w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0",
+                            isSelected
+                              ? selectionModeType === "export"
+                                ? "bg-amber-500 border-amber-500"
+                                : "bg-purple-500 border-purple-500"
+                              : theme === "dark"
+                              ? "border-gray-600"
+                              : "border-gray-300"
+                          )}
+                        >
+                          {isSelected && <TickCircle size={12} variant="Bold" color="#ffffff" />}
+                        </div>
+                      )}
+                      {extract.animeImage && (
+                        <img
+                          src={extract.animeImage}
+                          alt={extract.animeTitle}
+                          className="w-14 h-20 object-cover rounded-xl flex-shrink-0 shadow-lg"
+                        />
+                      )}
+                      <div className="min-w-0">
+                        <h3 className={cn(
+                          "text-sm font-semibold line-clamp-2",
+                          theme === "dark" ? "text-white" : "text-gray-900"
+                        )}>
+                          {extract.animeTitle}
+                        </h3>
+                        {isUsed && (
+                          <span className={cn(
+                            "inline-block mt-1 px-2 py-0.5 rounded text-[10px] font-medium",
+                            theme === "dark" ? "bg-orange-500/20 text-orange-400" : "bg-orange-100 text-orange-700"
+                          )}>
+                            Utilisé
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Extract Text */}
+                    <div className="col-span-3 flex items-center">
+                      <p className={cn(
+                        "text-sm italic line-clamp-3",
+                        theme === "dark" ? "text-gray-300" : "text-gray-700"
+                      )}>
+                        "{extract.text}"
+                      </p>
+                    </div>
+
+                    {/* Characters */}
+                    <div className="col-span-2 flex items-center">
+                      {extract.characters.length > 0 ? (
+                        <div className="flex flex-wrap gap-1">
+                          {extract.characters.map((char) => (
+                            <div
+                              key={char.malId}
+                              className={cn(
+                                "flex items-center gap-1 px-1.5 py-0.5 rounded-lg text-[10px] font-medium",
+                                theme === "dark"
+                                  ? "bg-purple-500/10 text-purple-400"
+                                  : "bg-purple-50 text-purple-700"
+                              )}
+                            >
+                              {char.image && (
+                                <img
+                                  src={char.image}
+                                  alt={char.name}
+                                  className="w-4 h-4 rounded-full object-cover"
+                                />
+                              )}
+                              <span className="truncate max-w-[60px]">{char.name}</span>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <span className={cn(
+                          "text-xs",
+                          theme === "dark" ? "text-gray-600" : "text-gray-400"
+                        )}>
+                          —
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Theme */}
+                    <div className="col-span-2 flex items-center">
+                      {extract.theme ? (
+                        <span
+                          className="inline-flex items-center px-2 py-1 rounded-lg text-xs font-medium text-white"
+                          style={{ backgroundColor: extract.theme.color }}
+                        >
+                          {extract.theme.name}
+                        </span>
+                      ) : (
+                        <span className={cn(
+                          "text-xs",
+                          theme === "dark" ? "text-gray-600" : "text-gray-400"
+                        )}>
+                          —
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Episode & Time */}
+                    <div className="col-span-2 flex items-center">
+                      <div>
+                        <div className={cn(
+                          "text-sm font-medium",
+                          theme === "dark" ? "text-gray-300" : "text-gray-700"
+                        )}>
+                          {extract.episode ? `Épisode ${extract.episode}` : "—"}
+                        </div>
+                        <div className={cn(
+                          "text-xs",
+                          theme === "dark" ? "text-gray-500" : "text-gray-500"
+                        )}>
+                          {extract.timing.start} - {extract.timing.end}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="col-span-1 flex items-center justify-end">
+                      {!isSelectionMode && (
+                        <div className="flex items-center gap-1">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigate(`/dashboard/extracts/${extract.id}/edit`);
+                            }}
+                            className={cn(
+                              "p-2 rounded-lg transition-colors",
+                              theme === "dark"
+                                ? "text-purple-400 hover:bg-purple-500/20"
+                                : "text-purple-600 hover:bg-purple-50"
+                            )}
+                          >
+                            <Edit2 size={16} variant="Bold" color={theme === "dark" ? "#a855f7" : "#9333ea"} />
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteClick(extract.id, extract.text);
+                            }}
+                            className={cn(
+                              "p-2 rounded-lg transition-colors",
+                              theme === "dark"
+                                ? "text-red-400 hover:bg-red-500/20"
+                                : "text-red-600 hover:bg-red-50"
+                            )}
+                          >
+                            <Trash size={16} variant="Bold" color={theme === "dark" ? "#f87171" : "#dc2626"} />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+          )}
         </div>
       )}
 
