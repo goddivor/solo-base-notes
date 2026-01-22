@@ -83,14 +83,6 @@ const DashboardLayout = () => {
           <div className="flex items-center justify-between">
             {/* Logo */}
             <NavLink to="/dashboard" className="flex items-center gap-3">
-              <div
-                className={cn(
-                  "w-10 h-10 rounded-xl flex items-center justify-center",
-                  "bg-gradient-to-br from-purple-500 to-cyan-500"
-                )}
-              >
-                <span className="text-white font-bold text-lg">Q</span>
-              </div>
               <div>
                 <h1 className="text-lg font-bold bg-gradient-to-r from-purple-500 to-cyan-500 bg-clip-text text-transparent">
                   QuoteForge
