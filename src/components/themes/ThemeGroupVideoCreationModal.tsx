@@ -5,6 +5,8 @@ import { GET_THEME_GROUP_WITH_EXTRACTS } from '../../lib/graphql/queries';
 import { CloseCircle, TickCircle, VideoPlay } from 'iconsax-react';
 import Button from '../actions/button';
 import { useToast } from '../../context/toast-context';
+import { useTheme } from '../../context/theme-context';
+import { cn } from '../../lib/utils';
 
 interface Character {
   malId: number;
@@ -51,6 +53,7 @@ interface Props {
 const ThemeGroupVideoCreationModal: React.FC<Props> = ({ themeGroup, isOpen, onClose }) => {
   const toast = useToast();
   const navigate = useNavigate();
+  const { theme } = useTheme();
   const [selectedThemeIds, setSelectedThemeIds] = useState<Set<string>>(
     new Set(themeGroup.themes.map(t => t.id))
   );
@@ -168,24 +171,41 @@ const ThemeGroupVideoCreationModal: React.FC<Props> = ({ themeGroup, isOpen, onC
   const totalExtractCount = allExtracts.length;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-6xl max-h-[90vh] flex flex-col">
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className={cn(
+        "rounded-2xl shadow-2xl w-full max-w-6xl max-h-[90vh] flex flex-col border",
+        theme === "dark"
+          ? "bg-[#1a1a25] border-gray-700"
+          : "bg-white border-gray-200"
+      )}>
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+        <div className={cn(
+          "flex items-center justify-between px-6 py-4 border-b",
+          theme === "dark" ? "border-gray-700" : "border-gray-200"
+        )}>
           <div>
-            <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+            <h2 className={cn(
+              "text-xl font-bold flex items-center gap-2",
+              theme === "dark" ? "text-white" : "text-gray-900"
+            )}>
               <VideoPlay size={24} variant="Bulk" color="#9333EA" />
               Créer une Vidéo - {themeGroup.name}
             </h2>
-            <p className="text-sm text-gray-600 mt-1">
+            <p className={cn(
+              "text-sm mt-1",
+              theme === "dark" ? "text-gray-400" : "text-gray-600"
+            )}>
               Sélectionnez les thèmes et extraits à inclure dans la vidéo
             </p>
           </div>
           <button
             onClick={handleClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
+            className={cn(
+              "transition-colors",
+              theme === "dark" ? "text-gray-500 hover:text-gray-300" : "text-gray-400 hover:text-gray-600"
+            )}
           >
-            <CloseCircle size={28} variant="Bulk" color="#9CA3AF" />
+            <CloseCircle size={28} variant="Bulk" color={theme === "dark" ? "#6B7280" : "#9CA3AF"} />
           </button>
         </div>
 
@@ -197,46 +217,65 @@ const ThemeGroupVideoCreationModal: React.FC<Props> = ({ themeGroup, isOpen, onC
             </div>
           ) : (
             <div className="space-y-6">
-              {themeGroup.themes.map(theme => {
-                const themeExtracts = extractsByTheme.get(theme.id) || [];
-                const isThemeSelected = selectedThemeIds.has(theme.id);
+              {themeGroup.themes.map(themeItem => {
+                const themeExtracts = extractsByTheme.get(themeItem.id) || [];
+                const isThemeSelected = selectedThemeIds.has(themeItem.id);
                 const selectedCount = themeExtracts.filter(e => selectedExtractIds.has(e.id)).length;
 
                 return (
                   <div
-                    key={theme.id}
-                    className={`border-2 rounded-xl overflow-hidden transition-all ${
-                      isThemeSelected ? 'border-purple-300 bg-purple-50/30' : 'border-gray-200'
-                    }`}
+                    key={themeItem.id}
+                    className={cn(
+                      "border-2 rounded-xl overflow-hidden transition-all",
+                      isThemeSelected
+                        ? theme === "dark"
+                          ? "border-purple-500/50 bg-purple-500/10"
+                          : "border-purple-300 bg-purple-50/30"
+                        : theme === "dark"
+                        ? "border-gray-700"
+                        : "border-gray-200"
+                    )}
                   >
                     {/* Theme Header */}
                     <button
-                      onClick={() => toggleTheme(theme.id)}
-                      className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-50/50 transition-colors"
+                      onClick={() => toggleTheme(themeItem.id)}
+                      className={cn(
+                        "w-full px-4 py-3 flex items-center justify-between transition-colors",
+                        theme === "dark" ? "hover:bg-white/5" : "hover:bg-gray-50/50"
+                      )}
                     >
                       <div className="flex items-center gap-3">
                         <div
                           className="w-10 h-10 rounded-lg flex items-center justify-center"
-                          style={{ backgroundColor: theme.color }}
+                          style={{ backgroundColor: themeItem.color }}
                         >
                           {isThemeSelected && (
                             <TickCircle size={20} variant="Bold" color="#FFFFFF" />
                           )}
                         </div>
                         <div className="text-left">
-                          <h3 className="font-bold text-gray-900">{theme.name}</h3>
-                          <p className="text-sm text-gray-600">
+                          <h3 className={cn(
+                            "font-bold",
+                            theme === "dark" ? "text-white" : "text-gray-900"
+                          )}>{themeItem.name}</h3>
+                          <p className={cn(
+                            "text-sm",
+                            theme === "dark" ? "text-gray-400" : "text-gray-600"
+                          )}>
                             {selectedCount} / {themeExtracts.length} extraits sélectionnés
                           </p>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
                         <div
-                          className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
+                          className={cn(
+                            "w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all",
                             isThemeSelected
-                              ? 'bg-purple-600 border-purple-600'
-                              : 'border-gray-300 bg-white'
-                          }`}
+                              ? "bg-purple-600 border-purple-600"
+                              : theme === "dark"
+                              ? "border-gray-600 bg-gray-800"
+                              : "border-gray-300 bg-white"
+                          )}
                         >
                           {isThemeSelected && (
                             <TickCircle size={16} variant="Bold" color="#FFFFFF" />
@@ -256,25 +295,37 @@ const ThemeGroupVideoCreationModal: React.FC<Props> = ({ themeGroup, isOpen, onC
                           return (
                             <button
                               key={extract.id}
-                              onClick={() => toggleExtract(extract.id, theme.id, isUsed)}
+                              onClick={() => toggleExtract(extract.id, themeItem.id, isUsed)}
                               disabled={isDisabled}
-                              className={`w-full p-3 rounded-lg border-2 transition-all text-left ${
+                              className={cn(
+                                "w-full p-3 rounded-lg border-2 transition-all text-left",
                                 isDisabled
-                                  ? 'opacity-50 cursor-not-allowed border-gray-200 bg-gray-50'
+                                  ? theme === "dark"
+                                    ? "opacity-50 cursor-not-allowed border-gray-700 bg-gray-800"
+                                    : "opacity-50 cursor-not-allowed border-gray-200 bg-gray-50"
                                   : isExtractSelected
-                                  ? 'border-purple-400 bg-purple-50'
-                                  : 'border-gray-200 bg-white hover:border-gray-300'
-                              }`}
+                                  ? theme === "dark"
+                                    ? "border-purple-500 bg-purple-500/20"
+                                    : "border-purple-400 bg-purple-50"
+                                  : theme === "dark"
+                                  ? "border-gray-700 bg-[#12121a] hover:border-gray-600"
+                                  : "border-gray-200 bg-white hover:border-gray-300"
+                              )}
                             >
                               <div className="flex items-start gap-3">
                                 <div
-                                  className={`flex-shrink-0 w-5 h-5 mt-0.5 rounded border-2 flex items-center justify-center transition-all ${
+                                  className={cn(
+                                    "flex-shrink-0 w-5 h-5 mt-0.5 rounded border-2 flex items-center justify-center transition-all",
                                     isExtractSelected && !isDisabled
-                                      ? 'bg-purple-600 border-purple-600'
+                                      ? "bg-purple-600 border-purple-600"
                                       : isDisabled
-                                      ? 'border-gray-400 bg-gray-200'
-                                      : 'border-gray-300 bg-white'
-                                  }`}
+                                      ? theme === "dark"
+                                        ? "border-gray-600 bg-gray-700"
+                                        : "border-gray-400 bg-gray-200"
+                                      : theme === "dark"
+                                      ? "border-gray-600 bg-gray-800"
+                                      : "border-gray-300 bg-white"
+                                  )}
                                 >
                                   {isExtractSelected && !isDisabled && (
                                     <TickCircle size={12} variant="Bold" color="#FFFFFF" />
@@ -292,21 +343,35 @@ const ThemeGroupVideoCreationModal: React.FC<Props> = ({ themeGroup, isOpen, onC
                                     )}
                                     <div className="flex-1 min-w-0">
                                       <div className="flex items-center gap-2 mb-1">
-                                        <div className="font-medium text-gray-900 text-sm">
+                                        <div className={cn(
+                                          "font-medium text-sm",
+                                          theme === "dark" ? "text-white" : "text-gray-900"
+                                        )}>
                                           {extract.animeTitle}
                                           {extract.episode && (
-                                            <span className="text-gray-500 ml-1">
+                                            <span className={cn(
+                                              "ml-1",
+                                              theme === "dark" ? "text-gray-500" : "text-gray-500"
+                                            )}>
                                               - Ep. {extract.episode}
                                             </span>
                                           )}
                                         </div>
                                         {isUsed && (
-                                          <span className="px-2 py-0.5 bg-orange-100 text-orange-700 rounded text-xs font-medium">
+                                          <span className={cn(
+                                            "px-2 py-0.5 rounded text-xs font-medium",
+                                            theme === "dark"
+                                              ? "bg-orange-500/20 text-orange-400"
+                                              : "bg-orange-100 text-orange-700"
+                                          )}>
                                             Déjà utilisé
                                           </span>
                                         )}
                                       </div>
-                                      <p className="text-sm text-gray-700 italic mt-1 line-clamp-2">
+                                      <p className={cn(
+                                        "text-sm italic mt-1 line-clamp-2",
+                                        theme === "dark" ? "text-gray-300" : "text-gray-700"
+                                      )}>
                                         "{extract.text}"
                                       </p>
                                       {extract.characters.length > 0 && (
@@ -314,13 +379,23 @@ const ThemeGroupVideoCreationModal: React.FC<Props> = ({ themeGroup, isOpen, onC
                                           {extract.characters.slice(0, 3).map(char => (
                                             <span
                                               key={char.malId}
-                                              className="text-xs px-2 py-0.5 bg-gray-100 text-gray-700 rounded-full"
+                                              className={cn(
+                                                "text-xs px-2 py-0.5 rounded-full",
+                                                theme === "dark"
+                                                  ? "bg-gray-700 text-gray-300"
+                                                  : "bg-gray-100 text-gray-700"
+                                              )}
                                             >
                                               {char.name}
                                             </span>
                                           ))}
                                           {extract.characters.length > 3 && (
-                                            <span className="text-xs px-2 py-0.5 bg-gray-100 text-gray-700 rounded-full">
+                                            <span className={cn(
+                                              "text-xs px-2 py-0.5 rounded-full",
+                                              theme === "dark"
+                                                ? "bg-gray-700 text-gray-300"
+                                                : "bg-gray-100 text-gray-700"
+                                            )}>
                                               +{extract.characters.length - 3}
                                             </span>
                                           )}
@@ -337,7 +412,10 @@ const ThemeGroupVideoCreationModal: React.FC<Props> = ({ themeGroup, isOpen, onC
                     )}
 
                     {isThemeSelected && themeExtracts.length === 0 && (
-                      <div className="px-4 pb-4 text-center py-6 text-gray-500 text-sm">
+                      <div className={cn(
+                        "px-4 pb-4 text-center py-6 text-sm",
+                        theme === "dark" ? "text-gray-500" : "text-gray-500"
+                      )}>
                         Aucun extrait disponible pour ce thème
                       </div>
                     )}
@@ -349,20 +427,36 @@ const ThemeGroupVideoCreationModal: React.FC<Props> = ({ themeGroup, isOpen, onC
         </div>
 
         {/* Footer */}
-        <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-6 py-4">
+        <div className={cn(
+          "sticky bottom-0 border-t px-6 py-4",
+          theme === "dark"
+            ? "bg-[#12121a] border-gray-700"
+            : "bg-gray-50 border-gray-200"
+        )}>
           <div className="flex items-center justify-between mb-3">
-            <div className="text-sm text-gray-600">
-              <span className="font-semibold text-purple-600">{selectedExtractCount}</span> / {totalExtractCount} extraits sélectionnés
+            <div className={cn(
+              "text-sm",
+              theme === "dark" ? "text-gray-400" : "text-gray-600"
+            )}>
+              <span className="font-semibold text-purple-500">{selectedExtractCount}</span> / {totalExtractCount} extraits sélectionnés
             </div>
-            <div className="text-sm text-gray-600">
-              <span className="font-semibold text-purple-600">{selectedThemeIds.size}</span> / {themeGroup.themes.length} thèmes sélectionnés
+            <div className={cn(
+              "text-sm",
+              theme === "dark" ? "text-gray-400" : "text-gray-600"
+            )}>
+              <span className="font-semibold text-purple-500">{selectedThemeIds.size}</span> / {themeGroup.themes.length} thèmes sélectionnés
             </div>
           </div>
           <div className="flex gap-3">
             <Button
               type="button"
               onClick={handleClose}
-              className="flex-1 px-4 py-3 border-2 border-gray-300 text-gray-700 hover:bg-gray-100 rounded-lg font-medium transition-all"
+              className={cn(
+                "flex-1 px-4 py-3 border-2 rounded-xl font-medium transition-all",
+                theme === "dark"
+                  ? "border-gray-600 text-gray-300 hover:bg-white/10"
+                  : "border-gray-300 text-gray-700 hover:bg-gray-100"
+              )}
             >
               Annuler
             </Button>
@@ -370,7 +464,7 @@ const ThemeGroupVideoCreationModal: React.FC<Props> = ({ themeGroup, isOpen, onC
               type="button"
               onClick={handleContinueToBuilder}
               disabled={selectedExtractIds.size === 0}
-              className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-purple-600 text-white hover:bg-purple-700 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-purple-500 to-cyan-500 text-white hover:from-purple-400 hover:to-cyan-400 rounded-xl font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all"
             >
               <TickCircle size={20} variant="Bulk" color="#FFFFFF" />
               Continuer ({selectedExtractIds.size} extraits)
