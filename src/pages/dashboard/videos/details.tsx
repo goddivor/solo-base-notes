@@ -497,7 +497,7 @@ const VideoDetailsPage: React.FC = () => {
                   <span className={cn(
                     theme === "dark" ? "text-gray-500" : "text-gray-500"
                   )}>
-                    Video ID:
+                    ID de la Vidéo:
                   </span>
                   <p className={cn(
                     "font-mono text-xs break-all",

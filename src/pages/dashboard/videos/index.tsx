@@ -68,11 +68,11 @@ const VideosPage: React.FC = () => {
       refetch();
       setShowDeleteModal(false);
       setVideoToDelete(null);
-      toast.success('Video deleted', 'The video has been deleted successfully');
+      toast.success('Vidéo supprimée', 'La vidéo a été supprimée avec succès');
     },
     onError: (error) => {
       console.error('Error deleting video:', error);
-      toast.error('Failed to delete video', error.message || 'Please try again');
+      toast.error('Échec de la suppression', error.message || 'Veuillez réessayer');
     },
   });
 
@@ -82,11 +82,11 @@ const VideosPage: React.FC = () => {
       setShowPublishModal(false);
       setVideoToPublish(null);
       setYoutubeVideoId('');
-      toast.success('Video published!', 'The video has been marked as published');
+      toast.success('Vidéo publiée !', 'La vidéo a été marquée comme publiée');
     },
     onError: (error) => {
       console.error('Error publishing video:', error);
-      toast.error('Failed to publish video', error.message || 'Please try again');
+      toast.error('Échec de la publication', error.message || 'Veuillez réessayer');
     },
   });
 
@@ -111,7 +111,7 @@ const VideosPage: React.FC = () => {
     if (videoToPublish && youtubeVideoId.trim()) {
       publishVideo({ variables: { id: videoToPublish.id, youtubeVideoId: youtubeVideoId.trim() } });
     } else {
-      toast.error('YouTube Video ID required', 'Please enter a YouTube video ID');
+      toast.error('ID YouTube requis', 'Veuillez entrer un ID de vidéo YouTube');
     }
   };
 
@@ -376,7 +376,7 @@ const VideosPage: React.FC = () => {
                   "block text-sm font-medium mb-2",
                   theme === "dark" ? "text-gray-300" : "text-gray-700"
                 )}>
-                  YouTube Video ID *
+                  ID de la Vidéo YouTube *
                 </label>
                 <input
                   type="text"

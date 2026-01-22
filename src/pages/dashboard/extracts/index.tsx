@@ -91,11 +91,11 @@ const ExtractsPage = () => {
       refetch();
       setShowDeleteModal(false);
       setExtractToDelete(null);
-      toast.success("Extract deleted", "The extract has been deleted successfully");
+      toast.success("Extrait supprimé", "L'extrait a été supprimé avec succès");
     },
     onError: (error) => {
       console.error("Error deleting extract:", error);
-      toast.error("Failed to delete extract", error.message || "Please try again");
+      toast.error("Échec de la suppression", error.message || "Veuillez réessayer");
     },
   });
 
@@ -112,7 +112,7 @@ const ExtractsPage = () => {
 
   const toggleExtractSelection = (extractId: string, isUsedInVideo: boolean) => {
     if (selectionModeType === "video" && isUsedInVideo) {
-      toast.error("Extract already in use", "This extract is already used in a video and cannot be selected");
+      toast.error("Extrait déjà utilisé", "Cet extrait est déjà utilisé dans une vidéo et ne peut pas être sélectionné");
       return;
     }
 
@@ -123,7 +123,7 @@ const ExtractsPage = () => {
 
   const handleCreateVideo = () => {
     if (selectedExtracts.length === 0) {
-      toast.error("No extracts selected", "Please select at least one extract to create a video");
+      toast.error("Aucun extrait sélectionné", "Veuillez sélectionner au moins un extrait pour créer une vidéo");
       return;
     }
     navigate("/dashboard/video/builder", {
@@ -131,21 +131,21 @@ const ExtractsPage = () => {
     });
   };
 
-  const handleCancelSelection = () => {
+  const handleAnnulerSelection = () => {
     setIsSelectionMode(false);
     setSelectedExtracts([]);
     setSelectionModeType("video");
   };
 
-  const handleStartExportSelection = () => {
+  const handleStartExporterSelection = () => {
     setSelectionModeType("export");
     setIsSelectionMode(true);
     setSelectedExtracts([]);
   };
 
-  const handleExportSelected = () => {
+  const handleExporterSelected = () => {
     if (selectedExtracts.length === 0) {
-      toast.error("No extracts selected", "Please select at least one extract to export");
+      toast.error("Aucun extrait sélectionné", "Veuillez sélectionner au moins un extrait à exporter");
       return;
     }
     setShowExportModal(true);
@@ -207,14 +207,14 @@ const ExtractsPage = () => {
               theme === "dark" ? "text-white" : "text-gray-900"
             )}
           >
-            All Extracts
+            Tous les Extraits
           </h1>
           <p className={theme === "dark" ? "text-gray-400" : "text-gray-600"}>
             {isSelectionMode
               ? selectionModeType === "export"
-                ? `${selectedExtracts.length} extract${selectedExtracts.length !== 1 ? "s" : ""} selected for export`
-                : `${selectedExtracts.length} extract${selectedExtracts.length !== 1 ? "s" : ""} selected for video`
-              : "Browse and manage your anime extracts"}
+                ? `${selectedExtracts.length} extrait${selectedExtracts.length !== 1 ? "s" : ""} sélectionné${selectedExtracts.length !== 1 ? "s" : ""} pour l'export`
+                : `${selectedExtracts.length} extrait${selectedExtracts.length !== 1 ? "s" : ""} sélectionné${selectedExtracts.length !== 1 ? "s" : ""} pour la vidéo`
+              : "Parcourir et gérer vos extraits anime"}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -222,7 +222,7 @@ const ExtractsPage = () => {
             selectionModeType === "export" ? (
               <>
                 <Button
-                  onClick={handleCancelSelection}
+                  onClick={handleAnnulerSelection}
                   className={cn(
                     "flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium transition-all",
                     theme === "dark"
@@ -231,21 +231,21 @@ const ExtractsPage = () => {
                   )}
                 >
                   <CloseCircle size={18} variant="Bold" color={theme === "dark" ? "#9ca3af" : "#374151"} />
-                  Cancel
+                  Annuler
                 </Button>
                 <Button
-                  onClick={handleExportSelected}
+                  onClick={handleExporterSelected}
                   disabled={selectedExtracts.length === 0}
                   className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-xl font-medium transition-all hover:shadow-lg hover:shadow-amber-500/25 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <DocumentDownload size={18} variant="Bold" color="#ffffff" />
-                  Export ({selectedExtracts.length})
+                  Exporter ({selectedExtracts.length})
                 </Button>
               </>
             ) : (
               <>
                 <Button
-                  onClick={handleCancelSelection}
+                  onClick={handleAnnulerSelection}
                   className={cn(
                     "flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium transition-all",
                     theme === "dark"
@@ -254,7 +254,7 @@ const ExtractsPage = () => {
                   )}
                 >
                   <CloseCircle size={18} variant="Bold" color={theme === "dark" ? "#9ca3af" : "#374151"} />
-                  Cancel
+                  Annuler
                 </Button>
                 <Button
                   onClick={handleCreateVideo}
@@ -262,7 +262,7 @@ const ExtractsPage = () => {
                   className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl font-medium transition-all hover:shadow-lg hover:shadow-green-500/25 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <TickCircle size={18} variant="Bold" color="#ffffff" />
-                  Continue ({selectedExtracts.length})
+                  Continuer ({selectedExtracts.length})
                 </Button>
               </>
             )
@@ -278,10 +278,10 @@ const ExtractsPage = () => {
                 )}
               >
                 <DocumentUpload size={18} variant="Bold" color={theme === "dark" ? "#34d399" : "#059669"} />
-                Import
+                Importer
               </Button>
               <Button
-                onClick={handleStartExportSelection}
+                onClick={handleStartExporterSelection}
                 className={cn(
                   "flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium transition-all",
                   theme === "dark"
@@ -290,7 +290,7 @@ const ExtractsPage = () => {
                 )}
               >
                 <DocumentDownload size={18} variant="Bold" color={theme === "dark" ? "#fbbf24" : "#d97706"} />
-                Export
+                Exporter
               </Button>
               <Button
                 onClick={() => {
@@ -305,14 +305,14 @@ const ExtractsPage = () => {
                 )}
               >
                 <VideoPlay size={18} variant="Bold" color={theme === "dark" ? "#a855f7" : "#9333ea"} />
-                Create Video
+                Créer une Vidéo
               </Button>
               <Button
                 onClick={() => navigate("/dashboard/extracts/new")}
                 className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-purple-500 to-cyan-500 text-white rounded-xl font-medium transition-all hover:shadow-lg hover:shadow-purple-500/25"
               >
                 <Add size={18} variant="Bold" color="#ffffff" />
-                New Extract
+                Nouvel Extrait
               </Button>
             </>
           )}
@@ -336,7 +336,7 @@ const ExtractsPage = () => {
             />
             <input
               type="text"
-              placeholder="Search by text, anime or character..."
+              placeholder="Rechercher par texte, anime ou personnage..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className={cn(
@@ -358,7 +358,7 @@ const ExtractsPage = () => {
                 )}
               >
                 <Filter size={16} color={theme === "dark" ? "#9ca3af" : "#6b7280"} />
-                Filter by
+                Filtrer par
               </label>
               <select
                 value={filterType}
@@ -374,9 +374,9 @@ const ExtractsPage = () => {
                     : "bg-gray-50 border-gray-200 text-gray-900 focus:border-purple-500"
                 )}
               >
-                <option value="all">All extracts</option>
-                <option value="mini-theme">Mini-Theme</option>
-                <option value="theme-group">Theme Group</option>
+                <option value="all">Tous les extraits</option>
+                <option value="mini-theme">Mini-Thème</option>
+                <option value="theme-group">Groupe de Thème</option>
               </select>
             </div>
 
@@ -388,7 +388,7 @@ const ExtractsPage = () => {
                     theme === "dark" ? "text-gray-400" : "text-gray-600"
                   )}
                 >
-                  Select a mini-theme
+                  Sélectionner un mini-thème
                 </label>
                 <select
                   value={selectedThemeId || ""}
@@ -400,7 +400,7 @@ const ExtractsPage = () => {
                       : "bg-gray-50 border-gray-200 text-gray-900 focus:border-purple-500"
                   )}
                 >
-                  <option value="">All mini-themes</option>
+                  <option value="">Tous les mini-thèmes</option>
                   {themes.map((t) => (
                     <option key={t.id} value={t.id}>
                       {t.name}
@@ -418,7 +418,7 @@ const ExtractsPage = () => {
                     theme === "dark" ? "text-gray-400" : "text-gray-600"
                   )}
                 >
-                  Select a theme group
+                  Sélectionner un groupe de thème
                 </label>
                 <select
                   value={selectedThemeGroupId || ""}
@@ -430,10 +430,10 @@ const ExtractsPage = () => {
                       : "bg-gray-50 border-gray-200 text-gray-900 focus:border-purple-500"
                   )}
                 >
-                  <option value="">All theme groups</option>
+                  <option value="">Tous les groupes de thème</option>
                   {themeGroups.map((group) => (
                     <option key={group.id} value={group.id}>
-                      {group.name} ({group.themes.length} mini-themes)
+                      {group.name} ({group.themes.length} mini-thèmes)
                     </option>
                   ))}
                 </select>
@@ -473,18 +473,18 @@ const ExtractsPage = () => {
                 theme === "dark" ? "text-white" : "text-gray-900"
               )}
             >
-              {searchQuery || selectedThemeId ? "No extracts found" : "No extracts yet"}
+              {searchQuery || selectedThemeId ? "Aucun extrait trouvé" : "Aucun extrait"}
             </h3>
             <p className={cn("mb-6", theme === "dark" ? "text-gray-400" : "text-gray-600")}>
               {searchQuery || selectedThemeId
-                ? "Try adjusting your filters or search query"
-                : "Create your first extract to start building your collection"}
+                ? "Essayez d'ajuster vos filtres ou votre recherche"
+                : "Créez votre premier extrait pour commencer votre collection"}
             </p>
             <Button
               onClick={() => navigate("/dashboard/extracts/new")}
               className="px-6 py-3 bg-gradient-to-r from-purple-500 to-cyan-500 text-white rounded-xl font-medium transition-all hover:shadow-lg hover:shadow-purple-500/25"
             >
-              Create Extract
+              Créer un Extrait
             </Button>
           </div>
         </div>
@@ -494,7 +494,7 @@ const ExtractsPage = () => {
       {!loading && filteredExtracts.length > 0 && (
         <div>
           <div className={cn("mb-4 text-sm", theme === "dark" ? "text-gray-500" : "text-gray-500")}>
-            {filteredExtracts.length} extract{filteredExtracts.length > 1 ? "s" : ""} found
+            {filteredExtracts.length} extrait{filteredExtracts.length > 1 ? "s" : ""} trouvé{filteredExtracts.length > 1 ? "s" : ""}
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {filteredExtracts.map((extract) => {
@@ -561,10 +561,10 @@ const ExtractsPage = () => {
                             )}
                           >
                             {isSelected
-                              ? "Selected"
+                              ? "Sélectionné"
                               : isDisabled
-                              ? "Already used"
-                              : "Click to select"}
+                              ? "Déjà utilisé"
+                              : "Cliquer pour sélectionner"}
                           </span>
                         </div>
                         {isUsed && selectionModeType === "video" && (
@@ -576,7 +576,7 @@ const ExtractsPage = () => {
                                 : "bg-orange-100 text-orange-700"
                             )}
                           >
-                            In video
+                            Dans une vidéo
                           </span>
                         )}
                       </div>
@@ -657,7 +657,7 @@ const ExtractsPage = () => {
                           )}
                         >
                           <Profile2User size={12} color={theme === "dark" ? "#6b7280" : "#6b7280"} />
-                          <span>Characters:</span>
+                          <span>Personnages :</span>
                         </div>
                         <div className="flex flex-wrap gap-2">
                           {extract.characters.map((char) => (
@@ -702,7 +702,7 @@ const ExtractsPage = () => {
                           )}
                         >
                           <Edit2 size={16} variant="Bold" color={theme === "dark" ? "#a855f7" : "#9333ea"} />
-                          Edit
+                          Modifier
                         </button>
                         <button
                           onClick={() => handleDeleteClick(extract.id, extract.text)}
@@ -714,7 +714,7 @@ const ExtractsPage = () => {
                           )}
                         >
                           <Trash size={16} variant="Bold" color={theme === "dark" ? "#f87171" : "#dc2626"} />
-                          Delete
+                          Supprimer
                         </button>
                       </div>
                     )}
@@ -734,11 +734,11 @@ const ExtractsPage = () => {
           setExtractToDelete(null);
         }}
         onConfirm={handleConfirmDelete}
-        title="Delete Extract"
-        message={`Are you sure you want to delete this extract? This action cannot be undone.\n\n"${extractToDelete?.text.substring(0, 80)}${extractToDelete && extractToDelete.text.length > 80 ? "..." : ""}"`}
+        title="Supprimer l'Extrait"
+        message={`Êtes-vous sûr de vouloir supprimer cet extrait ? Cette action est irréversible.\n\n"${extractToDelete?.text.substring(0, 80)}${extractToDelete && extractToDelete.text.length > 80 ? "..." : ""}"`}
         type="danger"
-        confirmText="Delete"
-        cancelText="Cancel"
+        confirmText="Supprimer"
+        cancelText="Annuler"
         loading={deleting}
       />
 

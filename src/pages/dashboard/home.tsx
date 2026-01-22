@@ -63,16 +63,16 @@ const DashboardHome = () => {
         fetchChannelInfo({ variables: { url } });
         fetchChannelVideos({ variables: { url, maxResults: 50 } });
         toast.success(
-          "YouTube channel saved",
-          "Your YouTube channel has been connected successfully"
+          "Chaîne YouTube enregistrée",
+          "Votre chaîne YouTube a été connectée avec succès"
         );
       }
     },
     onError: (error) => {
       console.error("Error updating YouTube URL:", error);
       toast.error(
-        "Failed to save YouTube URL",
-        error.message || "Please check the URL and try again"
+        "Échec de l'enregistrement",
+        error.message || "Veuillez vérifier l'URL et réessayer"
       );
     },
   });
@@ -89,7 +89,7 @@ const DashboardHome = () => {
   const handleSaveUrl = (e: React.FormEvent) => {
     e.preventDefault();
     if (!youtubeUrl.trim()) {
-      toast.error("URL required", "Please enter a YouTube channel URL");
+      toast.error("URL requise", "Veuillez entrer l'URL d'une chaîne YouTube");
       return;
     }
     updateYoutubeUrl({ variables: { youtubeChannelUrl: youtubeUrl } });
@@ -129,12 +129,12 @@ const DashboardHome = () => {
     const diffTime = Math.abs(now.getTime() - date.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-    if (diffDays === 0) return "Today";
-    if (diffDays === 1) return "Yesterday";
-    if (diffDays < 7) return `${diffDays} days ago`;
-    if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
-    if (diffDays < 365) return `${Math.floor(diffDays / 30)} months ago`;
-    return `${Math.floor(diffDays / 365)} years ago`;
+    if (diffDays === 0) return "Aujourd'hui";
+    if (diffDays === 1) return "Hier";
+    if (diffDays < 7) return `Il y a ${diffDays} jours`;
+    if (diffDays < 30) return `Il y a ${Math.floor(diffDays / 7)} semaines`;
+    if (diffDays < 365) return `Il y a ${Math.floor(diffDays / 30)} mois`;
+    return `Il y a ${Math.floor(diffDays / 365)} ans`;
   };
 
   const quickActions = [
@@ -144,8 +144,8 @@ const DashboardHome = () => {
       iconColor: "#a855f7",
       bgColor: theme === "dark" ? "bg-purple-500/10" : "bg-purple-100",
       hoverBg: theme === "dark" ? "hover:bg-purple-500/20" : "hover:bg-purple-200",
-      title: "Create Extract",
-      description: "Add new anime extracts with characters and timing",
+      title: "Créer un Extrait",
+      description: "Ajouter de nouveaux extraits anime avec personnages et timing",
     },
     {
       to: "/dashboard/themes",
@@ -153,8 +153,8 @@ const DashboardHome = () => {
       iconColor: "#06b6d4",
       bgColor: theme === "dark" ? "bg-cyan-500/10" : "bg-cyan-100",
       hoverBg: theme === "dark" ? "hover:bg-cyan-500/20" : "hover:bg-cyan-200",
-      title: "Manage Themes",
-      description: "Organize extracts by video themes",
+      title: "Gérer les Thèmes",
+      description: "Organiser les extraits par thèmes vidéo",
     },
     {
       to: "/dashboard/extracts",
@@ -162,8 +162,8 @@ const DashboardHome = () => {
       iconColor: "#10b981",
       bgColor: theme === "dark" ? "bg-emerald-500/10" : "bg-emerald-100",
       hoverBg: theme === "dark" ? "hover:bg-emerald-500/20" : "hover:bg-emerald-200",
-      title: "View Library",
-      description: "Browse all your saved extracts",
+      title: "Voir la Bibliothèque",
+      description: "Parcourir tous vos extraits enregistrés",
     },
     {
       to: "/dashboard/published-videos",
@@ -171,8 +171,8 @@ const DashboardHome = () => {
       iconColor: "#f59e0b",
       bgColor: theme === "dark" ? "bg-amber-500/10" : "bg-amber-100",
       hoverBg: theme === "dark" ? "hover:bg-amber-500/20" : "hover:bg-amber-200",
-      title: "Link YouTube Videos",
-      description: "Link published YouTube videos to extracts",
+      title: "Lier les Vidéos YouTube",
+      description: "Lier les vidéos YouTube publiées aux extraits",
     },
   ];
 
@@ -186,10 +186,10 @@ const DashboardHome = () => {
             theme === "dark" ? "text-white" : "text-gray-900"
           )}
         >
-          Welcome back!
+          Bon retour !
         </h1>
         <p className={theme === "dark" ? "text-gray-400" : "text-gray-600"}>
-          Manage your anime extracts and grow your YouTube channel
+          Gérez vos extraits anime et développez votre chaîne YouTube
         </p>
       </div>
 
@@ -267,7 +267,7 @@ const DashboardHome = () => {
                   )}
                 >
                   <Edit2 size={16} variant="Bold" color={theme === "dark" ? "#a855f7" : "#9333ea"} />
-                  Edit
+                  Modifier
                 </button>
               </div>
 
@@ -286,7 +286,7 @@ const DashboardHome = () => {
                         theme === "dark" ? "text-gray-400" : "text-gray-600"
                       )}
                     >
-                      Subscribers
+                      Abonnés
                     </span>
                   </div>
                   <p
@@ -312,7 +312,7 @@ const DashboardHome = () => {
                         theme === "dark" ? "text-gray-400" : "text-gray-600"
                       )}
                     >
-                      Videos
+                      Vidéos
                     </span>
                   </div>
                   <p
@@ -338,7 +338,7 @@ const DashboardHome = () => {
                         theme === "dark" ? "text-gray-400" : "text-gray-600"
                       )}
                     >
-                      Total Views
+                      Vues totales
                     </span>
                   </div>
                   <p
@@ -373,11 +373,11 @@ const DashboardHome = () => {
                   )}
                 >
                   {settingsData?.settings?.youtubeChannelUrl
-                    ? "Edit YouTube Channel"
-                    : "Connect YouTube Channel"}
+                    ? "Modifier la chaîne YouTube"
+                    : "Connecter une chaîne YouTube"}
                 </h2>
                 <p className={theme === "dark" ? "text-gray-400" : "text-gray-600"}>
-                  Add your YouTube channel URL to display channel stats
+                  Ajoutez l'URL de votre chaîne YouTube pour afficher les statistiques
                 </p>
               </div>
             </div>
@@ -390,7 +390,7 @@ const DashboardHome = () => {
                     theme === "dark" ? "text-gray-300" : "text-gray-700"
                   )}
                 >
-                  YouTube Channel URL
+                  URL de la chaîne YouTube
                 </label>
                 <input
                   type="text"
@@ -411,7 +411,7 @@ const DashboardHome = () => {
                     theme === "dark" ? "text-gray-500" : "text-gray-500"
                   )}
                 >
-                  Supported formats: @username, /channel/ID, /c/username
+                  Formats supportés : @nomutilisateur, /channel/ID, /c/nomutilisateur
                 </p>
               </div>
 
@@ -427,7 +427,7 @@ const DashboardHome = () => {
                         : "text-gray-700 bg-gray-100 hover:bg-gray-200"
                     )}
                   >
-                    Cancel
+                    Annuler
                   </button>
                 )}
                 <button
@@ -438,12 +438,12 @@ const DashboardHome = () => {
                   {updating || loadingChannel ? (
                     <>
                       <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      {loadingChannel ? "Checking..." : "Saving..."}
+                      {loadingChannel ? "Vérification..." : "Enregistrement..."}
                     </>
                   ) : (
                     <>
                       <TickCircle size={20} variant="Bold" color="#ffffff" />
-                      Save Channel
+                      Enregistrer la chaîne
                     </>
                   )}
                 </button>
@@ -520,10 +520,10 @@ const DashboardHome = () => {
                       theme === "dark" ? "text-white" : "text-gray-900"
                     )}
                   >
-                    Long-form Videos
+                    Vidéos longues
                   </h2>
                   <p className={theme === "dark" ? "text-gray-500" : "text-gray-500"}>
-                    {longFormVideos.length} videos
+                    {longFormVideos.length} vidéos
                   </p>
                 </div>
               </div>
@@ -533,7 +533,7 @@ const DashboardHome = () => {
                   <div className="text-center">
                     <div className="inline-block animate-spin rounded-full h-10 w-10 border-2 border-purple-500 border-t-transparent mb-4" />
                     <p className={theme === "dark" ? "text-gray-400" : "text-gray-600"}>
-                      Loading videos...
+                      Chargement des vidéos...
                     </p>
                   </div>
                 </div>
@@ -615,7 +615,7 @@ const DashboardHome = () => {
                     Shorts
                   </h2>
                   <p className={theme === "dark" ? "text-gray-500" : "text-gray-500"}>
-                    {shortsVideos.length} shorts
+                    {shortsVideos.length} vidéos courtes
                   </p>
                 </div>
               </div>
@@ -625,7 +625,7 @@ const DashboardHome = () => {
                   <div className="text-center">
                     <div className="inline-block animate-spin rounded-full h-10 w-10 border-2 border-pink-500 border-t-transparent mb-4" />
                     <p className={theme === "dark" ? "text-gray-400" : "text-gray-600"}>
-                      Loading shorts...
+                      Chargement des shorts...
                     </p>
                   </div>
                 </div>

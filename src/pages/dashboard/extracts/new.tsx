@@ -97,34 +97,34 @@ const NewExtract: React.FC = () => {
 
   const [createExtract, { loading }] = useMutation(CREATE_EXTRACT, {
     onCompleted: () => {
-      toast.success('Extract created', 'Your extract has been created successfully');
+      toast.success('Extrait créé', 'Votre extrait a été créé avec succès');
       navigate('/dashboard/extracts');
     },
     onError: (error) => {
       console.error('Error creating extract:', error);
-      toast.error('Failed to create extract', error.message || 'Please try again');
+      toast.error('Échec de la création', error.message || 'Veuillez réessayer');
     },
   });
 
   const [correctSpellingMutation, { loading: correcting }] = useMutation(CORRECT_SPELLING, {
     onCompleted: (data) => {
       setText(data.correctSpelling);
-      toast.success('Spelling corrected', 'Your text has been corrected successfully');
+      toast.success('Orthographe corrigée', 'Votre texte a été corrigé avec succès');
     },
     onError: (error) => {
       console.error('Error correcting spelling:', error);
-      toast.error('Failed to correct spelling', error.message || 'Please try again');
+      toast.error('Échec de la correction', error.message || 'Veuillez réessayer');
     },
   });
 
   const [translateTextMutation, { loading: translating }] = useMutation(TRANSLATE_TEXT, {
     onCompleted: (data) => {
       setText(data.translateText);
-      toast.success('Text translated', 'Your text has been translated to French successfully');
+      toast.success('Texte traduit', 'Votre texte a été traduit en français avec succès');
     },
     onError: (error) => {
       console.error('Error translating text:', error);
-      toast.error('Failed to translate text', error.message || 'Please try again');
+      toast.error('Échec de la traduction', error.message || 'Veuillez réessayer');
     },
   });
 
@@ -134,12 +134,12 @@ const NewExtract: React.FC = () => {
         setAvailableSubtitles(data.searchSubtitles);
         setShowSubtitleModal(true);
       } else {
-        toast.error('No subtitles found', 'No subtitles available for this episode');
+        toast.error('Aucun sous-titre trouvé', 'Aucun sous-titre disponible pour cet épisode');
       }
     },
     onError: (error) => {
       console.error('Error searching subtitles:', error);
-      toast.error('Failed to search subtitles', error.message || 'Please try again');
+      toast.error('Échec de la recherche', error.message || 'Veuillez réessayer');
     },
   });
 
@@ -158,23 +158,23 @@ const NewExtract: React.FC = () => {
 
         if (extractedText) {
           setText(extractedText);
-          toast.success('Subtitle loaded', 'Text will update automatically when you change timing');
+          toast.success('Sous-titre chargé', 'Le texte se mettra à jour automatiquement quand vous changez le timing');
         } else {
-          toast.warning('No text found', 'No subtitle text found for current timing. Adjust the timing to see text.');
+          toast.warning('Aucun texte trouvé', 'Aucun texte de sous-titre pour le timing actuel. Ajustez le timing pour voir le texte.');
         }
       } else {
-        toast.error('Failed to load subtitle', 'No subtitle data received');
+        toast.error('Échec du chargement', 'Aucune donnée de sous-titre reçue');
       }
     },
     onError: (error) => {
       console.error('Error downloading subtitle:', error);
-      toast.error('Failed to download subtitle', error.message || 'Please try again');
+      toast.error('Échec du téléchargement', error.message || 'Veuillez réessayer');
     },
   });
 
   const handleCorrectSpelling = () => {
     if (!text || text.trim().length === 0) {
-      toast.error('No text to correct', 'Please enter some text first');
+      toast.error('Aucun texte à corriger', 'Veuillez d\'abord entrer du texte');
       return;
     }
 
@@ -185,18 +185,18 @@ const NewExtract: React.FC = () => {
 
   const handleCleanText = () => {
     if (!text || text.trim().length === 0) {
-      toast.error('No text to clean', 'Please enter some text first');
+      toast.error('Aucun texte à nettoyer', 'Veuillez d\'abord entrer du texte');
       return;
     }
 
     const cleanedText = cleanSubtitleText(text);
     setText(cleanedText);
-    toast.success('Text cleaned', 'Subtitle formatting has been removed');
+    toast.success('Texte nettoyé', 'Le formatage des sous-titres a été supprimé');
   };
 
   const handleTranslate = () => {
     if (!text || text.trim().length === 0) {
-      toast.error('No text to translate', 'Please enter some text first');
+      toast.error('Aucun texte à traduire', 'Veuillez d\'abord entrer du texte');
       return;
     }
 
@@ -207,12 +207,12 @@ const NewExtract: React.FC = () => {
 
   const handleAutoFillFromSubtitles = () => {
     if (!selectedAnime || !episode || !timing.start || !timing.end) {
-      toast.error('Missing information', 'Please select anime, episode, and timing first');
+      toast.error('Informations manquantes', 'Veuillez sélectionner un anime, un épisode et le timing');
       return;
     }
 
     if (timing.start === '00:00' && timing.end === '00:00') {
-      toast.error('Invalid timing', 'Please set extract timing first');
+      toast.error('Timing invalide', 'Veuillez d\'abord définir le timing de l\'extrait');
       return;
     }
 
@@ -239,7 +239,7 @@ const NewExtract: React.FC = () => {
     e.preventDefault();
 
     if (!text || !selectedAnime || selectedCharacters.length === 0 || !timing.start || !timing.end || !selectedThemeId) {
-      setValidationMessage('Please fill all required fields including theme');
+      setValidationMessage('Veuillez remplir tous les champs requis, y compris le thème');
       setShowValidationModal(true);
       return;
     }
@@ -761,7 +761,7 @@ const NewExtract: React.FC = () => {
       <ConfirmationModal
         isOpen={showValidationModal}
         onClose={() => setShowValidationModal(false)}
-        title="Missing Required Fields"
+        title="Champs obligatoires manquants"
         message={validationMessage}
         type="warning"
       />
