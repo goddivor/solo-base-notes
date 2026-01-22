@@ -85,6 +85,22 @@ const NewExtract: React.FC = () => {
     }
   };
 
+  const handleAnimeSelect = (anime: SelectedAnime | null) => {
+    if (anime === null) {
+      // Reset all related fields when changing anime
+      setSelectedAnime(null);
+      setSelectedCharacters([]);
+      setEpisode(undefined);
+      setEpisodeDuration(24);
+      setTiming({ start: '00:00', end: '00:00' });
+      setText('');
+      setLoadedSubtitles([]);
+      setAvailableSubtitles([]);
+    } else {
+      setSelectedAnime(anime);
+    }
+  };
+
   const handleReset = () => {
     setText('');
     setSelectedAnime(null);
@@ -93,6 +109,8 @@ const NewExtract: React.FC = () => {
     setEpisode(undefined);
     setEpisodeDuration(24);
     setSelectedThemeId(undefined);
+    setLoadedSubtitles([]);
+    setAvailableSubtitles([]);
   };
 
   const [createExtract, { loading }] = useMutation(CREATE_EXTRACT, {
@@ -395,7 +413,7 @@ const NewExtract: React.FC = () => {
                   2. Rechercher un anime
                 </h2>
                 <AnimeSearch
-                  onSelect={setSelectedAnime}
+                  onSelect={handleAnimeSelect}
                   selectedAnime={selectedAnime}
                   apiSource={apiSource}
                 />
