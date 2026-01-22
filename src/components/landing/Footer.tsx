@@ -34,7 +34,7 @@ export default function Footer() {
                 theme === "dark" ? "text-gray-400" : "text-gray-600"
               )}
             >
-              The ultimate tool for anime content creators.
+              L'outil ultime pour les créateurs de contenu anime.
             </p>
             <div className="flex gap-4">
               {/* YouTube */}
@@ -112,7 +112,7 @@ export default function Footer() {
                 theme === "dark" ? "text-white" : "text-gray-900"
               )}
             >
-              Product
+              Produit
             </h4>
             <ul
               className={cn(
@@ -128,7 +128,7 @@ export default function Footer() {
                     theme === "dark" ? "hover:text-white" : "hover:text-gray-900"
                   )}
                 >
-                  Features
+                  Fonctionnalités
                 </button>
               </li>
               <li>
@@ -139,7 +139,7 @@ export default function Footer() {
                     theme === "dark" ? "hover:text-white" : "hover:text-gray-900"
                   )}
                 >
-                  Pricing
+                  Tarifs
                 </button>
               </li>
               <li>
@@ -150,7 +150,7 @@ export default function Footer() {
                     theme === "dark" ? "hover:text-white" : "hover:text-gray-900"
                   )}
                 >
-                  Changelog
+                  Journal des modifications
                 </a>
               </li>
               <li>
@@ -161,7 +161,7 @@ export default function Footer() {
                     theme === "dark" ? "hover:text-white" : "hover:text-gray-900"
                   )}
                 >
-                  Roadmap
+                  Feuille de route
                 </a>
               </li>
             </ul>
@@ -175,7 +175,7 @@ export default function Footer() {
                 theme === "dark" ? "text-white" : "text-gray-900"
               )}
             >
-              Resources
+              Ressources
             </h4>
             <ul
               className={cn(
@@ -202,7 +202,7 @@ export default function Footer() {
                     theme === "dark" ? "hover:text-white" : "hover:text-gray-900"
                   )}
                 >
-                  API Reference
+                  Référence API
                 </a>
               </li>
               <li>
@@ -224,7 +224,7 @@ export default function Footer() {
                     theme === "dark" ? "hover:text-white" : "hover:text-gray-900"
                   )}
                 >
-                  Community
+                  Communauté
                 </a>
               </li>
             </ul>
@@ -238,7 +238,7 @@ export default function Footer() {
                 theme === "dark" ? "text-white" : "text-gray-900"
               )}
             >
-              Company
+              Entreprise
             </h4>
             <ul
               className={cn(
@@ -254,7 +254,7 @@ export default function Footer() {
                     theme === "dark" ? "hover:text-white" : "hover:text-gray-900"
                   )}
                 >
-                  About
+                  À propos
                 </a>
               </li>
               <li>
@@ -265,7 +265,7 @@ export default function Footer() {
                     theme === "dark" ? "hover:text-white" : "hover:text-gray-900"
                   )}
                 >
-                  Privacy Policy
+                  Politique de confidentialité
                 </a>
               </li>
               <li>
@@ -276,7 +276,7 @@ export default function Footer() {
                     theme === "dark" ? "hover:text-white" : "hover:text-gray-900"
                   )}
                 >
-                  Terms of Service
+                  Conditions d'utilisation
                 </a>
               </li>
               <li>
@@ -303,10 +303,10 @@ export default function Footer() {
               : "border-gray-200 text-gray-500"
           )}
         >
-          <p>&copy; {new Date().getFullYear()} QuoteForge. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} QuoteForge. Tous droits réservés.</p>
           <p className="flex items-center gap-1">
-            Made with <span className="text-pink-500">♥</span> for the anime
-            community
+            Fait avec <span className="text-pink-500">♥</span> pour la communauté
+            anime
           </p>
         </div>
       </div>

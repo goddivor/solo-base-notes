@@ -50,9 +50,9 @@ export default function CTASection({ onGetStarted }: CTASectionProps) {
             theme === "dark" ? "text-white" : "text-gray-900"
           )}
         >
-          Ready to Transform Your
+          Prêt à transformer votre
           <span className="block bg-gradient-to-r from-purple-500 via-cyan-500 to-pink-500 bg-clip-text text-transparent animate-gradient">
-            Anime Content Creation?
+            création de contenu anime ?
           </span>
         </h2>
         <p
@@ -61,8 +61,8 @@ export default function CTASection({ onGetStarted }: CTASectionProps) {
             theme === "dark" ? "text-gray-400" : "text-gray-600"
           )}
         >
-          Join thousands of creators who are producing more content in less time
-          with QuoteForge.
+          Rejoignez des milliers de créateurs qui produisent plus de contenu en moins
+          de temps avec QuoteForge.
         </p>
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
           <button
@@ -95,7 +95,7 @@ export default function CTASection({ onGetStarted }: CTASectionProps) {
                 d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
               />
             </svg>
-            Start Free with Google
+            Commencer gratuitement avec Google
           </button>
           <span
             className={cn(
@@ -103,7 +103,7 @@ export default function CTASection({ onGetStarted }: CTASectionProps) {
               theme === "dark" ? "text-gray-500" : "text-gray-500"
             )}
           >
-            No credit card required
+            Pas de carte bancaire requise
           </span>
         </div>
       </div>

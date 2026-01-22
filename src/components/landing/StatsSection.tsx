@@ -11,23 +11,23 @@ interface Stat {
 
 const stats: Stat[] = [
   {
-    value: "2,500+",
-    label: "Active Creators",
+    value: "2 500+",
+    label: "Créateurs actifs",
     icon: <People size={28} color="#a855f7" variant="Bulk" />,
   },
   {
     value: "150K+",
-    label: "Quotes Extracted",
+    label: "Citations extraites",
     icon: <DocumentText1 size={28} color="#06b6d4" variant="Bulk" />,
   },
   {
     value: "50K+",
-    label: "Videos Created",
+    label: "Vidéos créées",
     icon: <Video size={28} color="#ec4899" variant="Bulk" />,
   },
   {
     value: "10M+",
-    label: "Views Generated",
+    label: "Vues générées",
     icon: <Eye size={28} color="#8b5cf6" variant="Bulk" />,
   },
 ];

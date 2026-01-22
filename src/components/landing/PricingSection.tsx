@@ -15,52 +15,52 @@ interface PricingTier {
 
 const pricingTiers: PricingTier[] = [
   {
-    name: "Starter",
-    price: "Free",
-    period: "forever",
-    description: "Perfect for getting started",
+    name: "Débutant",
+    price: "Gratuit",
+    period: "à vie",
+    description: "Parfait pour débuter",
     features: [
-      "Up to 50 extracts",
-      "3 themes",
-      "Basic anime search",
-      "Manual export",
-      "Community support",
+      "Jusqu'à 50 extraits",
+      "3 thèmes",
+      "Recherche anime basique",
+      "Export manuel",
+      "Support communautaire",
     ],
-    cta: "Get Started Free",
+    cta: "Commencer gratuitement",
   },
   {
     name: "Pro",
-    price: "$12",
-    period: "/month",
-    description: "For serious content creators",
+    price: "12€",
+    period: "/mois",
+    description: "Pour les créateurs sérieux",
     features: [
-      "Unlimited extracts",
-      "Unlimited themes",
-      "Advanced search filters",
-      "AI scene detection",
-      "Bulk export",
-      "Analytics dashboard",
-      "Priority support",
-      "Custom thumbnails",
+      "Extraits illimités",
+      "Thèmes illimités",
+      "Filtres de recherche avancés",
+      "Détection IA de scènes",
+      "Export en masse",
+      "Tableau de bord analytique",
+      "Support prioritaire",
+      "Miniatures personnalisées",
     ],
     highlighted: true,
-    cta: "Start 14-Day Trial",
+    cta: "Essai gratuit 14 jours",
   },
   {
-    name: "Enterprise",
-    price: "$49",
-    period: "/month",
-    description: "For teams and agencies",
+    name: "Entreprise",
+    price: "49€",
+    period: "/mois",
+    description: "Pour les équipes et agences",
     features: [
-      "Everything in Pro",
-      "Team collaboration (5 seats)",
-      "API access",
-      "White-label exports",
-      "Custom integrations",
-      "Dedicated account manager",
-      "99.9% SLA",
+      "Tout dans Pro",
+      "Collaboration d'équipe (5 places)",
+      "Accès API",
+      "Exports en marque blanche",
+      "Intégrations personnalisées",
+      "Gestionnaire de compte dédié",
+      "SLA 99.9%",
     ],
-    cta: "Contact Sales",
+    cta: "Contacter les ventes",
   },
 ];
 
@@ -93,7 +93,7 @@ function PricingCard({ tier, index, onSelect }: PricingCardProps) {
     >
       {tier.highlighted && (
         <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 bg-gradient-to-r from-purple-500 to-cyan-500 rounded-full text-xs font-bold text-white whitespace-nowrap">
-          MOST POPULAR
+          LE PLUS POPULAIRE
         </div>
       )}
 
@@ -198,9 +198,9 @@ export default function PricingSection({ onGetStarted }: PricingSectionProps) {
               theme === "dark" ? "text-white" : "text-gray-900"
             )}
           >
-            Simple,{" "}
+            Tarification{" "}
             <span className="bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">
-              Transparent Pricing
+              simple et transparente
             </span>
           </h2>
           <p
@@ -209,7 +209,7 @@ export default function PricingSection({ onGetStarted }: PricingSectionProps) {
               theme === "dark" ? "text-gray-400" : "text-gray-600"
             )}
           >
-            Start free and scale as you grow. No hidden fees, cancel anytime.
+            Commencez gratuitement et évoluez. Pas de frais cachés, annulez quand vous voulez.
           </p>
         </div>
 
@@ -232,7 +232,7 @@ export default function PricingSection({ onGetStarted }: PricingSectionProps) {
             theme === "dark" ? "text-gray-500" : "text-gray-500"
           )}
         >
-          All plans include 24/7 email support and access to our creator community.
+          Tous les plans incluent le support email 24/7 et l'accès à notre communauté de créateurs.
         </p>
       </div>
     </section>

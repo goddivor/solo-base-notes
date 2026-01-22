@@ -14,26 +14,26 @@ interface Testimonial {
 const testimonials: Testimonial[] = [
   {
     name: "Yuki Tanaka",
-    role: "Anime Quote Creator",
+    role: "Créateur de citations anime",
     channel: "@AnimeWisdom",
     content:
-      "QuoteForge cut my video prep time in half. The theme organization is a game-changer for planning my weekly uploads. I can now focus on what I love - finding the best quotes.",
+      "QuoteForge a réduit mon temps de préparation vidéo de moitié. L'organisation par thèmes change la donne pour planifier mes publications hebdomadaires. Je peux maintenant me concentrer sur ce que j'aime - trouver les meilleures citations.",
     avatar: "Y",
   },
   {
     name: "Marcus Chen",
-    role: "YouTube Partner",
+    role: "Partenaire YouTube",
     channel: "@OtakuQuotes",
     content:
-      "I went from 1 video a week to 3 after switching to QuoteForge. The AI scene detection is incredibly accurate and saves me hours of manual searching through episodes.",
+      "Je suis passé de 1 vidéo par semaine à 3 après être passé à QuoteForge. La détection IA de scènes est incroyablement précise et me fait gagner des heures de recherche manuelle dans les épisodes.",
     avatar: "M",
   },
   {
     name: "Sarah Kim",
-    role: "Content Agency Owner",
+    role: "Propriétaire d'agence de contenu",
     channel: "Weeb Media",
     content:
-      "We manage 12 anime channels with QuoteForge. The team features and analytics have transformed our workflow. It's the backbone of our content operation.",
+      "Nous gérons 12 chaînes anime avec QuoteForge. Les fonctionnalités d'équipe et les analytics ont transformé notre flux de travail. C'est la colonne vertébrale de notre opération de contenu.",
     avatar: "S",
   },
 ];
@@ -152,9 +152,9 @@ export default function TestimonialsSection() {
               theme === "dark" ? "text-white" : "text-gray-900"
             )}
           >
-            Loved by{" "}
+            Adoré par les{" "}
             <span className="bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent">
-              Creators
+              créateurs
             </span>
           </h2>
           <p
@@ -163,8 +163,8 @@ export default function TestimonialsSection() {
               theme === "dark" ? "text-gray-400" : "text-gray-600"
             )}
           >
-            Join thousands of anime content creators who trust QuoteForge for their
-            workflow
+            Rejoignez des milliers de créateurs de contenu anime qui font confiance
+            à QuoteForge pour leur flux de travail
           </p>
         </div>
 

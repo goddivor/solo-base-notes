@@ -44,7 +44,7 @@ export default function HeroSection({ onGetStarted }: HeroSectionProps) {
               theme === "dark" ? "text-purple-300" : "text-purple-700"
             )}
           >
-            The #1 tool for anime quote creators
+            L'outil #1 pour les créateurs de citations d'anime
           </span>
         </div>
 
@@ -57,11 +57,11 @@ export default function HeroSection({ onGetStarted }: HeroSectionProps) {
           )}
         >
           <span className={theme === "dark" ? "text-white" : "text-gray-900"}>
-            Transform Anime Moments
+            Transformez vos Moments Anime
           </span>
           <br />
           <span className="bg-gradient-to-r from-purple-500 via-cyan-500 to-pink-500 bg-clip-text text-transparent animate-gradient">
-            Into Viral Content
+            En Contenu Viral
           </span>
         </h1>
 
@@ -74,8 +74,8 @@ export default function HeroSection({ onGetStarted }: HeroSectionProps) {
             isLoaded && "animate-fade-in-up delay-200"
           )}
         >
-          QuoteForge helps YouTube creators extract, organize, and produce
-          stunning anime quote videos in minutes, not hours.
+          QuoteForge aide les créateurs YouTube à extraire, organiser et produire
+          des vidéos de citations d'anime époustouflantes en quelques minutes.
         </p>
 
         {/* CTAs */}
@@ -116,7 +116,7 @@ export default function HeroSection({ onGetStarted }: HeroSectionProps) {
                 d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
               />
             </svg>
-            Start Creating Free
+            Commencer gratuitement
           </button>
           <button
             className={cn(
@@ -128,7 +128,7 @@ export default function HeroSection({ onGetStarted }: HeroSectionProps) {
               "transition-all duration-300"
             )}
           >
-            Watch Demo
+            Voir la démo
           </button>
         </div>
 
@@ -159,12 +159,12 @@ export default function HeroSection({ onGetStarted }: HeroSectionProps) {
                 />
               ))}
             </div>
-            <span>2,500+ creators</span>
+            <span>2 500+ créateurs</span>
           </div>
           <span className={cn("hidden sm:block", theme === "dark" ? "text-gray-700" : "text-gray-300")}>•</span>
-          <span>50,000+ videos created</span>
+          <span>50 000+ vidéos créées</span>
           <span className={cn("hidden sm:block", theme === "dark" ? "text-gray-700" : "text-gray-300")}>•</span>
-          <span>10M+ views generated</span>
+          <span>10M+ vues générées</span>
         </div>
       </div>
 

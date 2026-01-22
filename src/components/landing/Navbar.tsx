@@ -58,7 +58,7 @@ export default function Navbar({ onGetStarted }: NavbarProps) {
                 : "text-gray-600 hover:text-gray-900"
             )}
           >
-            Features
+            Fonctionnalités
           </button>
           <button
             onClick={() => scrollToSection("how-it-works")}
@@ -69,7 +69,7 @@ export default function Navbar({ onGetStarted }: NavbarProps) {
                 : "text-gray-600 hover:text-gray-900"
             )}
           >
-            How it Works
+            Comment ça marche
           </button>
           <button
             onClick={() => scrollToSection("pricing")}
@@ -80,7 +80,7 @@ export default function Navbar({ onGetStarted }: NavbarProps) {
                 : "text-gray-600 hover:text-gray-900"
             )}
           >
-            Pricing
+            Tarifs
           </button>
         </div>
 
@@ -113,7 +113,7 @@ export default function Navbar({ onGetStarted }: NavbarProps) {
                 : "text-gray-600 hover:text-gray-900"
             )}
           >
-            Sign In
+            Se connecter
           </button>
           <button
             onClick={onGetStarted}
@@ -125,7 +125,7 @@ export default function Navbar({ onGetStarted }: NavbarProps) {
               "transition-all duration-300 hover:scale-105"
             )}
           >
-            Get Started
+            Commencer
           </button>
         </div>
       </div>

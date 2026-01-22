@@ -21,46 +21,46 @@ interface Feature {
 const features: Feature[] = [
   {
     icon: <SearchNormal1 size={28} color="#a855f7" variant="Bulk" />,
-    title: "Smart Anime Search",
+    title: "Recherche d'anime intelligente",
     description:
-      "Search across 50,000+ anime titles with MyAnimeList & Jikan integration",
+      "Recherchez parmi 50 000+ titres d'anime avec l'intégration MyAnimeList & Jikan",
   },
   {
     icon: <Video size={28} color="#06b6d4" variant="Bulk" />,
-    title: "Quote Extraction",
+    title: "Extraction de citations",
     description:
-      "Capture quotes with precise timestamps, episode info, and character data",
+      "Capturez des citations avec horodatages précis, infos d'épisode et données de personnages",
   },
   {
     icon: <Tag size={28} color="#ec4899" variant="Bulk" />,
-    title: "Theme Organization",
+    title: "Organisation par thèmes",
     description:
-      "Group quotes by themes like 'Motivation', 'Friendship', or 'Revenge'",
+      "Regroupez les citations par thèmes comme « Motivation », « Amitié » ou « Vengeance »",
   },
   {
     icon: <Magicpen size={28} color="#8b5cf6" variant="Bulk" />,
-    title: "AI Scene Detection",
-    description: "Automatically identify key emotional moments in episodes",
+    title: "Détection IA de scènes",
+    description: "Identifiez automatiquement les moments émotionnels clés des épisodes",
   },
   {
     icon: <ExportSquare size={28} color="#a855f7" variant="Bulk" />,
-    title: "Export Templates",
-    description: "Generate video-ready exports with thumbnails and descriptions",
+    title: "Modèles d'export",
+    description: "Générez des exports prêts pour la vidéo avec miniatures et descriptions",
   },
   {
     icon: <People size={28} color="#06b6d4" variant="Bulk" />,
-    title: "Character Database",
-    description: "Auto-fill character info with images, voice actors, and traits",
+    title: "Base de personnages",
+    description: "Remplissage auto des infos personnages avec images, doubleurs et traits",
   },
   {
     icon: <Chart size={28} color="#ec4899" variant="Bulk" />,
-    title: "Analytics Dashboard",
-    description: "Track which themes and anime perform best on your channel",
+    title: "Tableau de bord analytique",
+    description: "Suivez quels thèmes et anime performent le mieux sur votre chaîne",
   },
   {
     icon: <Cloud size={28} color="#8b5cf6" variant="Bulk" />,
-    title: "Cloud Sync",
-    description: "Access your quote library from any device, anytime",
+    title: "Synchronisation cloud",
+    description: "Accédez à votre bibliothèque de citations depuis n'importe quel appareil",
   },
 ];
 
@@ -142,9 +142,9 @@ export default function FeaturesSection() {
               theme === "dark" ? "text-white" : "text-gray-900"
             )}
           >
-            Everything You Need to{" "}
+            Tout ce dont vous avez besoin pour{" "}
             <span className="bg-gradient-to-r from-purple-500 to-cyan-500 bg-clip-text text-transparent">
-              Create Content
+              créer du contenu
             </span>
           </h2>
           <p
@@ -153,8 +153,8 @@ export default function FeaturesSection() {
               theme === "dark" ? "text-gray-400" : "text-gray-600"
             )}
           >
-            From quote extraction to video export, QuoteForge streamlines your
-            entire anime content workflow.
+            De l'extraction de citations à l'export vidéo, QuoteForge optimise
+            tout votre flux de travail de contenu anime.
           </p>
         </div>
 

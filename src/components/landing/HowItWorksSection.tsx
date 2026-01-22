@@ -13,26 +13,26 @@ interface Step {
 const steps: Step[] = [
   {
     number: "01",
-    title: "Search & Select",
-    description: "Find your anime and navigate to the episode with the perfect quote",
+    title: "Rechercher & Sélectionner",
+    description: "Trouvez votre anime et naviguez vers l'épisode avec la citation parfaite",
     icon: <SearchNormal1 size={32} color="#a855f7" variant="Bulk" />,
   },
   {
     number: "02",
-    title: "Extract & Tag",
-    description: "Capture the quote with timestamps, characters, and theme tags",
+    title: "Extraire & Taguer",
+    description: "Capturez la citation avec horodatages, personnages et tags thématiques",
     icon: <DocumentText1 size={32} color="#06b6d4" variant="Bulk" />,
   },
   {
     number: "03",
-    title: "Organize & Plan",
-    description: "Group extracts into video themes and plan your content calendar",
+    title: "Organiser & Planifier",
+    description: "Regroupez les extraits en thèmes vidéo et planifiez votre calendrier de contenu",
     icon: <Category size={32} color="#ec4899" variant="Bulk" />,
   },
   {
     number: "04",
-    title: "Export & Publish",
-    description: "Generate video scripts, thumbnails, and descriptions ready for upload",
+    title: "Exporter & Publier",
+    description: "Générez scripts vidéo, miniatures et descriptions prêts à téléverser",
     icon: <Send2 size={32} color="#8b5cf6" variant="Bulk" />,
   },
 ];
@@ -145,13 +145,13 @@ export default function HowItWorksSection() {
               theme === "dark" ? "text-white" : "text-gray-900"
             )}
           >
-            How It{" "}
+            Comment ça{" "}
             <span className="bg-gradient-to-r from-cyan-500 to-pink-500 bg-clip-text text-transparent">
-              Works
+              marche
             </span>
           </h2>
           <p className={theme === "dark" ? "text-gray-400" : "text-gray-600"}>
-            Four simple steps to transform anime moments into content
+            Quatre étapes simples pour transformer les moments anime en contenu
           </p>
         </div>
 
