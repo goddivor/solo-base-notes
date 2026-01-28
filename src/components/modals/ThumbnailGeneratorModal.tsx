@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { CloseCircle } from 'iconsax-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { CloseCircle, ArrowRight2, ArrowLeft2 } from 'iconsax-react';
 import Button from '../actions/button';
 import ImageSourcePanel from '../thumbnail/ImageSourcePanel';
 import BackgroundImageSlot from '../thumbnail/BackgroundImageSlot';
-import ElementAddButtons from '../thumbnail/ElementAddButtons';
+import CanvasToolbar, { type ToolType } from '../thumbnail/CanvasToolbar';
+import InteractiveCanvas from '../thumbnail/InteractiveCanvas';
 import LayerItem from '../thumbnail/LayerItem';
 import ElementPropertiesPanel from '../thumbnail/ElementPropertiesPanel';
 import { DEFAULT_PRESET } from '../../lib/thumbnail-presets';
@@ -52,78 +53,63 @@ const ThumbnailGeneratorModal: React.FC<ThumbnailGeneratorModalProps> = ({
   const [elements, setElements] = useState<CanvasElement[]>([]);
   const [selectedElementId, setSelectedElementId] = useState<string | null>(null);
   const [isExporting, setIsExporting] = useState(false);
+  const [activeTool, setActiveTool] = useState<ToolType>('select');
+  const [isRightPanelOpen, setIsRightPanelOpen] = useState(true);
 
-  // Initialiser les textes par défaut au chargement
+  // Keyboard shortcuts
   useEffect(() => {
-    if (isOpen && elements.length === 0) {
-      const defaultTextElements: TextElement[] = preset.defaultTexts.map((template, index) => ({
-        id: `text-default-${index}`,
-        type: 'text',
-        ...template,
-        size: { width: template.maxWidth || 1800, height: template.fontSize * 1.5 },
-        zIndex: 100 + index, // Textes au-dessus des images
-        rotation: 0,
-        opacity: 1,
-        visible: true,
-      }));
-      setElements(defaultTextElements);
-    }
-  }, [isOpen, preset, elements.length]);
+    if (!isOpen) return;
 
-  // Ajouter une image au canvas (clic simple)
-  const handleAddImage = (imageUrl: string, label: string) => {
-    const newImageElement: ImageElement = {
-      id: `image-${Date.now()}`,
-      type: 'image',
-      imageUrl,
-      label,
-      position: { x: 400, y: 200 }, // Position par défaut au centre-gauche
-      size: { width: 500, height: 600 },
-      zIndex: elements.length + 1, // Au-dessus des autres
-      rotation: 0,
-      opacity: 1,
-      visible: true,
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Don't trigger if typing in input
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+
+      switch (e.key.toLowerCase()) {
+        case 'v':
+          setActiveTool('select');
+          break;
+        case 't':
+          setActiveTool('text');
+          break;
+        case 'i':
+          setActiveTool('image');
+          setIsRightPanelOpen(true);
+          break;
+        case 'b':
+          setActiveTool('background');
+          setIsRightPanelOpen(true);
+          break;
+        case 'delete':
+        case 'backspace':
+          if (selectedElementId) {
+            handleDeleteElement(selectedElementId);
+          }
+          break;
+        case 'escape':
+          setSelectedElementId(null);
+          setActiveTool('select');
+          break;
+      }
     };
 
-    setElements([...elements, newImageElement]);
-    setSelectedElementId(newImageElement.id);
-    console.log('Image ajoutée:', label);
-  };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, selectedElementId]);
 
-  // Définir l'image de fond
-  const handleSetBackground = (imageUrl: string) => {
-    setBackgroundImage(imageUrl);
-    console.log('Image de fond définie');
-  };
-
-  // Retirer l'image de fond
-  const handleRemoveBackground = () => {
-    setBackgroundImage(null);
-    console.log('Image de fond retirée');
-  };
-
-  // Supprimer un élément
-  const handleDeleteElement = (elementId: string) => {
-    setElements(elements.filter(el => el.id !== elementId));
-    if (selectedElementId === elementId) {
-      setSelectedElementId(null);
+  // Open sources panel when image tool is selected
+  useEffect(() => {
+    if (activeTool === 'image' || activeTool === 'background') {
+      setIsRightPanelOpen(true);
     }
-  };
+  }, [activeTool]);
 
-  // Mettre à jour un élément
-  const handleUpdateElement = (elementId: string, updates: Partial<CanvasElement>) => {
-    setElements(elements.map(el =>
-      el.id === elementId ? { ...el, ...updates } as CanvasElement : el
-    ));
-  };
-
-  // Ajouter un nouvel élément texte
-  const handleAddText = () => {
+  // Add text at position (for text tool)
+  const handleAddTextAtPosition = useCallback((x: number, y: number) => {
     const newTextElement: TextElement = {
       id: `text-${Date.now()}`,
       type: 'text',
       text: 'Nouveau texte',
-      position: { x: 960, y: 540 }, // Centre du canvas
+      position: { x, y },
       size: { width: 800, height: 100 },
       fontSize: 80,
       fontFamily: 'Impact, Arial Black, sans-serif',
@@ -132,30 +118,25 @@ const ThumbnailGeneratorModal: React.FC<ThumbnailGeneratorModalProps> = ({
       strokeColor: '#000000',
       strokeWidth: 8,
       textAlign: 'center',
-      zIndex: elements.length + 1,
+      zIndex: elements.length + 100,
       rotation: 0,
       opacity: 1,
       visible: true,
     };
 
-    setElements([...elements, newTextElement]);
+    setElements(prev => [...prev, newTextElement]);
     setSelectedElementId(newTextElement.id);
-    console.log('Élément texte ajouté');
-  };
+    setActiveTool('select'); // Switch back to select after adding
+  }, [elements.length]);
 
-  // Ajouter un nouvel élément image (via prompt)
-  const handleAddImageFromUrl = () => {
-    const imageUrl = prompt('Entrez l\'URL de l\'image :');
-    if (!imageUrl) return;
-
-    const label = prompt('Nom de l\'image (optionnel) :') || 'Image personnalisée';
-
+  // Add image to canvas
+  const handleAddImage = (imageUrl: string, label: string) => {
     const newImageElement: ImageElement = {
       id: `image-${Date.now()}`,
       type: 'image',
       imageUrl,
       label,
-      position: { x: 960, y: 540 }, // Centre du canvas
+      position: { x: 400, y: 200 },
       size: { width: 500, height: 600 },
       zIndex: elements.length + 1,
       rotation: 0,
@@ -163,68 +144,90 @@ const ThumbnailGeneratorModal: React.FC<ThumbnailGeneratorModalProps> = ({
       visible: true,
     };
 
-    setElements([...elements, newImageElement]);
+    setElements(prev => [...prev, newImageElement]);
     setSelectedElementId(newImageElement.id);
-    console.log('Élément image ajouté:', label);
+    setActiveTool('select');
   };
 
-  // Basculer la visibilité d'un élément
+  // Set background image
+  const handleSetBackground = (imageUrl: string) => {
+    setBackgroundImage(imageUrl);
+    setActiveTool('select');
+  };
+
+  // Remove background image
+  const handleRemoveBackground = () => {
+    setBackgroundImage(null);
+  };
+
+  // Delete element
+  const handleDeleteElement = (elementId: string) => {
+    setElements(prev => prev.filter(el => el.id !== elementId));
+    if (selectedElementId === elementId) {
+      setSelectedElementId(null);
+    }
+  };
+
+  // Update element
+  const handleUpdateElement = (elementId: string, updates: Partial<CanvasElement>) => {
+    setElements(prev => prev.map(el =>
+      el.id === elementId ? { ...el, ...updates } as CanvasElement : el
+    ));
+  };
+
+  // Toggle visibility
   const handleToggleVisibility = (elementId: string) => {
-    setElements(elements.map(el =>
+    setElements(prev => prev.map(el =>
       el.id === elementId ? { ...el, visible: !el.visible } as CanvasElement : el
     ));
   };
 
-  // Basculer le verrouillage d'un élément
+  // Toggle lock
   const handleToggleLock = (elementId: string) => {
-    setElements(elements.map(el =>
+    setElements(prev => prev.map(el =>
       el.id === elementId ? { ...el, locked: !el.locked } as CanvasElement : el
     ));
   };
 
-  // Monter un élément (augmenter zIndex)
+  // Move up (increase zIndex)
   const handleMoveUp = (elementId: string) => {
     const element = elements.find(el => el.id === elementId);
     if (!element) return;
 
-    // Trouver l'élément juste au-dessus (zIndex supérieur le plus proche)
     const elementsAbove = elements.filter(el => el.zIndex > element.zIndex);
-    if (elementsAbove.length === 0) return; // Déjà au sommet
+    if (elementsAbove.length === 0) return;
 
     const nextElement = elementsAbove.reduce((prev, curr) =>
       curr.zIndex < prev.zIndex ? curr : prev
     );
 
-    // Échanger les zIndex
-    setElements(elements.map(el => {
+    setElements(prev => prev.map(el => {
       if (el.id === elementId) return { ...el, zIndex: nextElement.zIndex } as CanvasElement;
       if (el.id === nextElement.id) return { ...el, zIndex: element.zIndex } as CanvasElement;
       return el;
     }));
   };
 
-  // Descendre un élément (diminuer zIndex)
+  // Move down (decrease zIndex)
   const handleMoveDown = (elementId: string) => {
     const element = elements.find(el => el.id === elementId);
     if (!element) return;
 
-    // Trouver l'élément juste en-dessous (zIndex inférieur le plus proche)
     const elementsBelow = elements.filter(el => el.zIndex < element.zIndex);
-    if (elementsBelow.length === 0) return; // Déjà au fond
+    if (elementsBelow.length === 0) return;
 
     const prevElement = elementsBelow.reduce((prev, curr) =>
       curr.zIndex > prev.zIndex ? curr : prev
     );
 
-    // Échanger les zIndex
-    setElements(elements.map(el => {
+    setElements(prev => prev.map(el => {
       if (el.id === elementId) return { ...el, zIndex: prevElement.zIndex } as CanvasElement;
       if (el.id === prevElement.id) return { ...el, zIndex: element.zIndex } as CanvasElement;
       return el;
     }));
   };
 
-  // Exporter la miniature
+  // Export thumbnail
   const handleExport = async () => {
     setIsExporting(true);
     try {
@@ -237,10 +240,9 @@ const ThumbnailGeneratorModal: React.FC<ThumbnailGeneratorModalProps> = ({
         elements,
         filename,
       });
-      console.log('Miniature exportée avec succès:', filename);
     } catch (error) {
       console.error('Erreur lors de l\'export:', error);
-      alert('Erreur lors de l\'export de la miniature. Vérifiez la console pour plus de détails.');
+      alert('Erreur lors de l\'export de la miniature.');
     } finally {
       setIsExporting(false);
     }
@@ -248,232 +250,227 @@ const ThumbnailGeneratorModal: React.FC<ThumbnailGeneratorModalProps> = ({
 
   if (!isOpen) return null;
 
+  const selectedElement = elements.find(el => el.id === selectedElementId) || null;
+
   return (
-    <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center">
       <div className={cn(
-        "rounded-xl shadow-2xl w-full h-full max-h-[95vh] overflow-hidden flex flex-col",
-        theme === "dark" ? "bg-[#12121a]" : "bg-white"
+        "rounded-2xl shadow-2xl w-[98vw] h-[95vh] overflow-hidden flex flex-col",
+        theme === "dark" ? "bg-[#0a0a0f]" : "bg-gray-100"
       )}>
         {/* Header */}
-        <div className="bg-gradient-to-r from-purple-600 to-cyan-600 px-6 py-4 flex items-center justify-between flex-shrink-0">
+        <div className="bg-gradient-to-r from-purple-600 to-cyan-600 px-4 py-3 flex items-center justify-between flex-shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center">
-              <span className="text-2xl">🎨</span>
+            <div className="w-9 h-9 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center">
+              <span className="text-xl">🎨</span>
             </div>
             <div>
-              <h2 className="text-xl font-bold text-white">Générateur de Miniature</h2>
-              <p className="text-sm text-white/80 mt-0.5">{videoTitle}</p>
+              <h2 className="text-lg font-bold text-white">Générateur de Miniature</h2>
+              <p className="text-xs text-white/70">{videoTitle}</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+            className="p-1.5 hover:bg-white/20 rounded-lg transition-colors"
           >
-            <CloseCircle size={28} variant="Bold" color="#FFFFFF" />
+            <CloseCircle size={24} variant="Bold" color="#FFFFFF" />
           </button>
         </div>
 
         {/* Main Content */}
         <div className="flex-1 overflow-hidden flex">
-          {/* Left Panel - Image Sources */}
+          {/* Left Toolbar */}
           <div className={cn(
-            "w-[30%] border-r overflow-hidden",
+            "flex-shrink-0 p-3 flex flex-col items-center border-r",
             theme === "dark"
-              ? "border-gray-700 bg-[#0a0a0f]"
-              : "border-gray-200 bg-gray-50"
+              ? "bg-[#12121a] border-gray-800"
+              : "bg-white border-gray-200"
           )}>
-            <ImageSourcePanel
-              segments={segments}
-              onImageSelect={handleAddImage}
-              onImageDragStart={(_, label) => console.log('Drag started:', label)}
+            <CanvasToolbar
+              activeTool={activeTool}
+              onToolChange={setActiveTool}
             />
           </div>
 
-          {/* Center Panel - Canvas Preview */}
+          {/* Center - Canvas */}
           <div className={cn(
-            "flex-1 overflow-auto flex items-center justify-center p-6",
-            theme === "dark" ? "bg-[#0a0a0f]" : "bg-gray-100"
+            "flex-1 overflow-auto flex items-center justify-center p-4",
+            theme === "dark" ? "bg-[#0a0a0f]" : "bg-gray-200"
           )}>
-            <div className={cn(
-              "rounded-lg shadow-2xl p-4",
-              theme === "dark" ? "bg-[#1a1a25]" : "bg-white"
-            )}>
-              <div
-                className={cn(
-                  "relative border-4 rounded",
-                  theme === "dark" ? "border-gray-600" : "border-gray-300"
-                )}
-                style={{
-                  width: '960px', // 50% de 1920
-                  height: '540px', // 50% de 1080
-                  backgroundColor: preset.backgroundColor,
-                  backgroundImage: backgroundImage ? `url(${backgroundImage})` : 'none',
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center',
-                }}
-              >
-                {/* Rendu simplifié des éléments */}
-                {elements.map((element) => {
-                  if (!element.visible) return null;
-
-                  if (element.type === 'text') {
-                    const textEl = element as TextElement;
-                    return (
-                      <div
-                        key={element.id}
-                        className="absolute pointer-events-none"
-                        style={{
-                          left: `${(textEl.position.x / 1920) * 100}%`,
-                          top: `${(textEl.position.y / 1080) * 100}%`,
-                          transform: 'translate(-50%, -50%)',
-                          fontSize: `${textEl.fontSize / 2}px`, // Scalé 50%
-                          fontFamily: textEl.fontFamily,
-                          fontWeight: textEl.fontWeight,
-                          color: textEl.color,
-                          textAlign: textEl.textAlign,
-                          WebkitTextStroke: textEl.strokeWidth ? `${textEl.strokeWidth / 2}px ${textEl.strokeColor}` : 'none',
-                          zIndex: element.zIndex,
-                          opacity: element.opacity,
-                        }}
-                      >
-                        {textEl.text}
-                      </div>
-                    );
-                  }
-
-                  if (element.type === 'image') {
-                    const imgEl = element as ImageElement;
-                    return (
-                      <img
-                        key={element.id}
-                        src={imgEl.imageUrl}
-                        alt={imgEl.label}
-                        className="absolute"
-                        style={{
-                          left: `${(imgEl.position.x / 1920) * 100}%`,
-                          top: `${(imgEl.position.y / 1080) * 100}%`,
-                          width: `${(imgEl.size.width / 1920) * 100}%`,
-                          height: `${(imgEl.size.height / 1080) * 100}%`,
-                          transform: `rotate(${imgEl.rotation}deg)`,
-                          zIndex: element.zIndex,
-                          opacity: element.opacity,
-                          objectFit: 'cover',
-                        }}
-                      />
-                    );
-                  }
-
-                  return null;
-                })}
-              </div>
-            </div>
+            <InteractiveCanvas
+              width={preset.canvasSize.width}
+              height={preset.canvasSize.height}
+              scale={0.5}
+              backgroundColor={preset.backgroundColor}
+              backgroundImage={backgroundImage}
+              elements={elements}
+              selectedElementId={selectedElementId}
+              activeTool={activeTool}
+              onElementSelect={setSelectedElementId}
+              onElementUpdate={handleUpdateElement}
+              onAddTextAtPosition={handleAddTextAtPosition}
+            />
           </div>
 
-          {/* Right Panel - Background & Elements */}
+          {/* Right Panel - Collapsible */}
           <div className={cn(
-            "w-[20%] border-l overflow-y-auto",
+            "flex-shrink-0 border-l transition-all duration-300 overflow-hidden flex flex-col",
             theme === "dark"
-              ? "border-gray-700 bg-[#0a0a0f]"
-              : "border-gray-200 bg-gray-50"
+              ? "bg-[#12121a] border-gray-800"
+              : "bg-white border-gray-200",
+            isRightPanelOpen ? "w-72" : "w-0"
           )}>
-            <div className="p-4">
-              {/* Background Image Slot */}
-              <BackgroundImageSlot
-                backgroundImage={backgroundImage}
-                onSetBackground={handleSetBackground}
-                onRemoveBackground={handleRemoveBackground}
-              />
+            {isRightPanelOpen && (
+              <div className="h-full flex flex-col overflow-hidden">
+                {/* Sources Section (for image/background tools) */}
+                {(activeTool === 'image' || activeTool === 'background') ? (
+                  <div className="flex-1 overflow-hidden flex flex-col">
+                    <div className={cn(
+                      "p-3 border-b flex items-center justify-between",
+                      theme === "dark" ? "border-gray-800" : "border-gray-200"
+                    )}>
+                      <h3 className={cn(
+                        "text-sm font-bold",
+                        theme === "dark" ? "text-white" : "text-gray-900"
+                      )}>
+                        {activeTool === 'background' ? 'Image de fond' : 'Sources d\'images'}
+                      </h3>
+                    </div>
 
-              {/* Divider */}
-              <div className={cn(
-                "border-t my-6",
-                theme === "dark" ? "border-gray-700" : "border-gray-300"
-              )}></div>
-
-              {/* Element Addition Buttons */}
-              <ElementAddButtons
-                onAddText={handleAddText}
-                onAddImage={handleAddImageFromUrl}
-              />
-
-              {/* Divider */}
-              <div className={cn(
-                "border-t my-6",
-                theme === "dark" ? "border-gray-700" : "border-gray-300"
-              )}></div>
-
-              {/* Elements List */}
-              <h3 className={cn(
-                "text-sm font-bold mb-2",
-                theme === "dark" ? "text-white" : "text-gray-900"
-              )}>Calques</h3>
-              <p className={cn(
-                "text-xs mb-3",
-                theme === "dark" ? "text-gray-400" : "text-gray-500"
-              )}>
-                {elements.length} élément{elements.length !== 1 ? 's' : ''}
-              </p>
-
-              <div>
-                {elements.length === 0 ? (
-                  <div className={cn(
-                    "text-center py-8 text-xs",
-                    theme === "dark" ? "text-gray-500" : "text-gray-400"
-                  )}>
-                    <p>Aucun calque</p>
-                    <p className="mt-1">Ajoutez des images ou textes</p>
+                    {activeTool === 'background' ? (
+                      <div className="p-3">
+                        <BackgroundImageSlot
+                          backgroundImage={backgroundImage}
+                          onSetBackground={handleSetBackground}
+                          onRemoveBackground={handleRemoveBackground}
+                        />
+                      </div>
+                    ) : (
+                      <div className="flex-1 overflow-y-auto">
+                        <ImageSourcePanel
+                          segments={segments}
+                          onImageSelect={handleAddImage}
+                          onImageDragStart={(_, label) => console.log('Drag started:', label)}
+                        />
+                      </div>
+                    )}
                   </div>
                 ) : (
-                  // Trier par zIndex décroissant (les éléments du dessus en premier)
-                  [...elements]
-                    .sort((a, b) => b.zIndex - a.zIndex)
-                    .map((element, index, sortedArray) => (
-                      <LayerItem
-                        key={element.id}
-                        element={element}
-                        isSelected={selectedElementId === element.id}
-                        isFirst={index === 0}
-                        isLast={index === sortedArray.length - 1}
-                        onSelect={() => setSelectedElementId(element.id)}
-                        onDelete={() => handleDeleteElement(element.id)}
-                        onToggleVisibility={() => handleToggleVisibility(element.id)}
-                        onToggleLock={() => handleToggleLock(element.id)}
-                        onMoveUp={() => handleMoveUp(element.id)}
-                        onMoveDown={() => handleMoveDown(element.id)}
+                  /* Properties & Layers Section (for select tool) */
+                  <div className="flex-1 overflow-y-auto">
+                    {/* Properties Panel */}
+                    <div className={cn(
+                      "p-3 border-b",
+                      theme === "dark" ? "border-gray-800" : "border-gray-200"
+                    )}>
+                      <ElementPropertiesPanel
+                        element={selectedElement}
+                        onUpdate={handleUpdateElement}
                       />
-                    ))
+                    </div>
+
+                    {/* Layers Panel */}
+                    <div className="p-3">
+                      <h3 className={cn(
+                        "text-sm font-bold mb-2",
+                        theme === "dark" ? "text-white" : "text-gray-900"
+                      )}>
+                        Calques
+                      </h3>
+                      <p className={cn(
+                        "text-xs mb-3",
+                        theme === "dark" ? "text-gray-500" : "text-gray-500"
+                      )}>
+                        {elements.length} élément{elements.length !== 1 ? 's' : ''}
+                      </p>
+
+                      {elements.length === 0 ? (
+                        <div className={cn(
+                          "text-center py-6 text-xs",
+                          theme === "dark" ? "text-gray-600" : "text-gray-400"
+                        )}>
+                          <p>Aucun calque</p>
+                          <p className="mt-1">Utilisez l'outil Texte (T) ou Image (I)</p>
+                        </div>
+                      ) : (
+                        <div className="space-y-1">
+                          {[...elements]
+                            .sort((a, b) => b.zIndex - a.zIndex)
+                            .map((element, index, sortedArray) => (
+                              <LayerItem
+                                key={element.id}
+                                element={element}
+                                isSelected={selectedElementId === element.id}
+                                isFirst={index === 0}
+                                isLast={index === sortedArray.length - 1}
+                                onSelect={() => setSelectedElementId(element.id)}
+                                onDelete={() => handleDeleteElement(element.id)}
+                                onToggleVisibility={() => handleToggleVisibility(element.id)}
+                                onToggleLock={() => handleToggleLock(element.id)}
+                                onMoveUp={() => handleMoveUp(element.id)}
+                                onMoveDown={() => handleMoveDown(element.id)}
+                              />
+                            ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 )}
               </div>
-
-              {/* Divider */}
-              <div className={cn(
-                "border-t my-6",
-                theme === "dark" ? "border-gray-700" : "border-gray-300"
-              )}></div>
-
-              {/* Element Properties Panel */}
-              <ElementPropertiesPanel
-                element={elements.find(el => el.id === selectedElementId) || null}
-                onUpdate={handleUpdateElement}
-              />
-            </div>
+            )}
           </div>
+
+          {/* Toggle Right Panel Button */}
+          <button
+            onClick={() => setIsRightPanelOpen(!isRightPanelOpen)}
+            className={cn(
+              "absolute right-0 top-1/2 -translate-y-1/2 z-10 p-1.5 rounded-l-lg transition-all",
+              theme === "dark"
+                ? "bg-gray-800 hover:bg-gray-700 text-gray-400"
+                : "bg-gray-200 hover:bg-gray-300 text-gray-600",
+              isRightPanelOpen ? "mr-72" : "mr-0"
+            )}
+          >
+            {isRightPanelOpen ? (
+              <ArrowRight2 size={16} color={theme === "dark" ? "#9CA3AF" : "#4B5563"} />
+            ) : (
+              <ArrowLeft2 size={16} color={theme === "dark" ? "#9CA3AF" : "#4B5563"} />
+            )}
+          </button>
         </div>
 
         {/* Footer */}
         <div className={cn(
-          "border-t px-6 py-4 flex items-center justify-between flex-shrink-0",
+          "border-t px-4 py-3 flex items-center justify-between flex-shrink-0",
           theme === "dark"
-            ? "border-gray-700 bg-[#0a0a0f]"
-            : "border-gray-200 bg-gray-50"
+            ? "border-gray-800 bg-[#12121a]"
+            : "border-gray-200 bg-white"
         )}>
           <div className={cn(
-            "text-sm",
-            theme === "dark" ? "text-gray-400" : "text-gray-600"
+            "text-sm flex items-center gap-4",
+            theme === "dark" ? "text-gray-500" : "text-gray-500"
           )}>
-            {segments.length} segment{segments.length !== 1 ? 's' : ''} disponible{segments.length !== 1 ? 's' : ''}
+            <span>{elements.length} calque{elements.length !== 1 ? 's' : ''}</span>
+            <span>•</span>
+            <span className="flex items-center gap-1">
+              <kbd className={cn(
+                "px-1.5 py-0.5 rounded text-xs",
+                theme === "dark" ? "bg-gray-800" : "bg-gray-100"
+              )}>V</kbd>
+              Sélection
+              <kbd className={cn(
+                "px-1.5 py-0.5 rounded text-xs ml-2",
+                theme === "dark" ? "bg-gray-800" : "bg-gray-100"
+              )}>T</kbd>
+              Texte
+              <kbd className={cn(
+                "px-1.5 py-0.5 rounded text-xs ml-2",
+                theme === "dark" ? "bg-gray-800" : "bg-gray-100"
+              )}>I</kbd>
+              Image
+            </span>
           </div>
-          <div className="flex gap-3">
+          <div className="flex gap-2">
             <Button
               onClick={onClose}
               className={cn(
@@ -488,9 +485,9 @@ const ThumbnailGeneratorModal: React.FC<ThumbnailGeneratorModalProps> = ({
             <Button
               onClick={handleExport}
               disabled={isExporting}
-              className="px-6 py-2 bg-gradient-to-r from-purple-500 to-cyan-500 text-white hover:from-purple-400 hover:to-cyan-400 rounded-lg font-medium shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-5 py-2 bg-gradient-to-r from-purple-500 to-cyan-500 text-white hover:from-purple-400 hover:to-cyan-400 rounded-lg font-medium shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isExporting ? 'Export en cours...' : 'Exporter PNG'}
+              {isExporting ? 'Export...' : 'Exporter PNG'}
             </Button>
           </div>
         </div>
