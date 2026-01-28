@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Gallery, TickCircle, Trash } from 'iconsax-react';
+import React, { useState, useRef } from 'react';
+import { Gallery, TickCircle, Trash, FolderOpen } from 'iconsax-react';
 import { useTheme } from '../../context/theme-context';
 import { cn } from '../../lib/utils';
 
@@ -16,6 +16,7 @@ const BackgroundImageSlot: React.FC<BackgroundImageSlotProps> = ({
 }) => {
   const { theme } = useTheme();
   const [isDragOver, setIsDragOver] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -34,7 +35,37 @@ const BackgroundImageSlot: React.FC<BackgroundImageSlotProps> = ({
     const imageUrl = e.dataTransfer.getData('imageUrl');
     if (imageUrl) {
       onSetBackground(imageUrl);
+    } else {
+      // Handle file drop
+      const file = e.dataTransfer.files[0];
+      if (file && file.type.startsWith('image/')) {
+        handleFileSelect(file);
+      }
     }
+  };
+
+  const handleFileSelect = (file: File) => {
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const dataUrl = event.target?.result as string;
+      if (dataUrl) {
+        onSetBackground(dataUrl);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      handleFileSelect(file);
+    }
+    // Reset input to allow selecting the same file again
+    e.target.value = '';
+  };
+
+  const handleClick = () => {
+    fileInputRef.current?.click();
   };
 
   return (
@@ -47,15 +78,26 @@ const BackgroundImageSlot: React.FC<BackgroundImageSlotProps> = ({
         "text-xs mb-3",
         theme === "dark" ? "text-gray-400" : "text-gray-500"
       )}>
-        Glissez une image pour définir l'arrière-plan
+        Glissez ou cliquez pour sélectionner une image
       </p>
 
+      {/* Hidden file input */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        onChange={handleFileInputChange}
+        className="hidden"
+      />
+
       <div
+        onClick={!backgroundImage ? handleClick : undefined}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         className={cn(
           "relative rounded-lg border-2 transition-all overflow-hidden",
+          !backgroundImage && "cursor-pointer",
           isDragOver
             ? theme === "dark"
               ? "border-purple-500 bg-purple-500/20 scale-105"
@@ -65,8 +107,8 @@ const BackgroundImageSlot: React.FC<BackgroundImageSlotProps> = ({
               ? "border-green-500/50 bg-green-500/10"
               : "border-green-300 bg-green-50"
             : theme === "dark"
-              ? "border-dashed border-gray-600 bg-[#1a1a25] hover:border-gray-500"
-              : "border-dashed border-gray-300 bg-gray-50 hover:border-gray-400"
+              ? "border-dashed border-gray-600 bg-[#1a1a25] hover:border-purple-500 hover:bg-purple-500/10"
+              : "border-dashed border-gray-300 bg-gray-50 hover:border-purple-400 hover:bg-purple-50"
         )}
       >
         {backgroundImage ? (
@@ -98,18 +140,22 @@ const BackgroundImageSlot: React.FC<BackgroundImageSlotProps> = ({
             </div>
           </div>
         ) : (
-          // Pas de fond - Zone de drop
+          // Pas de fond - Zone de drop/click
           <div className="aspect-video flex items-center justify-center p-4">
             <div className="text-center">
               <div className={cn(
-                "w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-2",
+                "w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-2 transition-colors",
                 isDragOver
                   ? "bg-purple-500 animate-bounce"
                   : theme === "dark"
-                    ? "bg-gray-700"
-                    : "bg-gray-300"
+                    ? "bg-gray-700 group-hover:bg-purple-500"
+                    : "bg-gray-300 group-hover:bg-purple-500"
               )}>
-                <Gallery size={24} color="#FFFFFF" variant={isDragOver ? 'Bold' : 'Outline'} />
+                {isDragOver ? (
+                  <Gallery size={24} color="#FFFFFF" variant="Bold" />
+                ) : (
+                  <FolderOpen size={24} color="#FFFFFF" variant="Outline" />
+                )}
               </div>
               <p className={cn(
                 "text-xs font-medium",
@@ -121,13 +167,13 @@ const BackgroundImageSlot: React.FC<BackgroundImageSlotProps> = ({
                     ? "text-gray-400"
                     : "text-gray-600"
               )}>
-                {isDragOver ? '📥 Déposez l\'image ici' : 'Glissez une image'}
+                {isDragOver ? '📥 Déposez l\'image ici' : 'Cliquez ou glissez une image'}
               </p>
               <p className={cn(
                 "text-[10px] mt-1",
                 theme === "dark" ? "text-gray-500" : "text-gray-400"
               )}>
-                1920 × 1080
+                1920 × 1080 recommandé
               </p>
             </div>
           </div>
