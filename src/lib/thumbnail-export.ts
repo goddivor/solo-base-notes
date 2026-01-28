@@ -100,6 +100,60 @@ const drawImageElement = async (
 };
 
 /**
+ * Génère le thumbnail en base64 PNG
+ */
+export const generateThumbnailBase64 = async (options: Omit<ExportOptions, 'filename'>): Promise<string> => {
+  const {
+    width,
+    height,
+    backgroundColor,
+    backgroundImage,
+    elements,
+  } = options;
+
+  // Créer un canvas offscreen
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext('2d');
+
+  if (!ctx) {
+    throw new Error('Could not get canvas context');
+  }
+
+  // 1. Dessiner le fond (couleur)
+  ctx.fillStyle = backgroundColor;
+  ctx.fillRect(0, 0, width, height);
+
+  // 2. Dessiner l'image de fond (si présente)
+  if (backgroundImage) {
+    try {
+      const bgImg = await loadImage(backgroundImage);
+      ctx.drawImage(bgImg, 0, 0, width, height);
+    } catch (error) {
+      console.error('Error loading background image:', error);
+    }
+  }
+
+  // 3. Trier les éléments par zIndex (ascendant pour dessiner du fond vers le haut)
+  const sortedElements = [...elements]
+    .filter(el => el.visible !== false)
+    .sort((a, b) => a.zIndex - b.zIndex);
+
+  // 4. Dessiner tous les éléments
+  for (const element of sortedElements) {
+    if (element.type === 'text') {
+      drawTextElement(ctx, element as TextElement);
+    } else if (element.type === 'image') {
+      await drawImageElement(ctx, element as ImageElement);
+    }
+  }
+
+  // 5. Retourner en base64
+  return canvas.toDataURL('image/png');
+};
+
+/**
  * Exporte le thumbnail en PNG et déclenche le téléchargement
  */
 export const exportThumbnail = async (options: ExportOptions): Promise<void> => {

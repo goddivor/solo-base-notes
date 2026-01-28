@@ -332,6 +332,12 @@ export const GET_VIDEOS = gql`
         spotifyUrl
         uri
       }
+      thumbnail {
+        url
+        fileId
+        name
+        createdAt
+      }
       isPublished
       youtubeVideoId
       createdAt
@@ -390,6 +396,12 @@ export const GET_VIDEO = gql`
         previewUrl
         spotifyUrl
         uri
+      }
+      thumbnail {
+        url
+        fileId
+        name
+        createdAt
       }
       isPublished
       youtubeVideoId

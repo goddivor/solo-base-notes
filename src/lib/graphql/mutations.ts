@@ -237,6 +237,36 @@ export const PUBLISH_VIDEO = gql`
   }
 `;
 
+export const UPLOAD_VIDEO_THUMBNAIL = gql`
+  mutation UploadVideoThumbnail($videoId: ID!, $imageBase64: String!, $fileName: String!) {
+    uploadVideoThumbnail(videoId: $videoId, imageBase64: $imageBase64, fileName: $fileName) {
+      id
+      thumbnail {
+        url
+        fileId
+        name
+        createdAt
+      }
+      updatedAt
+    }
+  }
+`;
+
+export const DELETE_VIDEO_THUMBNAIL = gql`
+  mutation DeleteVideoThumbnail($videoId: ID!) {
+    deleteVideoThumbnail(videoId: $videoId) {
+      id
+      thumbnail {
+        url
+        fileId
+        name
+        createdAt
+      }
+      updatedAt
+    }
+  }
+`;
+
 export const LINK_PUBLISHED_VIDEO = gql`
   mutation LinkPublishedVideo($input: LinkPublishedVideoInput!) {
     linkPublishedVideo(input: $input) {
