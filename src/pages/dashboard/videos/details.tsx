@@ -64,6 +64,13 @@ interface SpotifyTrack {
   uri: string;
 }
 
+interface VideoThumbnail {
+  url: string;
+  fileId: string;
+  name?: string;
+  createdAt: string;
+}
+
 interface Video {
   id: string;
   title: string;
@@ -71,6 +78,7 @@ interface Video {
   tags: string;
   segments: VideoSegment[];
   musicTracks: SpotifyTrack[];
+  thumbnail?: VideoThumbnail | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -81,7 +89,7 @@ const VideoDetailsPage: React.FC = () => {
   const { theme } = useTheme();
   const [showThumbnailModal, setShowThumbnailModal] = useState(false);
 
-  const { data, loading } = useQuery(GET_VIDEO, {
+  const { data, loading, refetch } = useQuery(GET_VIDEO, {
     variables: { id },
     skip: !id,
   });
@@ -508,18 +516,66 @@ const VideoDetailsPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Thumbnail Generator Button */}
+              {/* Thumbnail Section */}
               <div className={cn(
                 "mt-6 pt-6 border-t",
                 theme === "dark" ? "border-gray-800" : "border-gray-200"
               )}>
-                <Button
-                  onClick={() => setShowThumbnailModal(true)}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-500 hover:to-pink-500 rounded-xl font-medium transition-all shadow-lg shadow-purple-500/25"
-                >
-                  <Image size={20} variant="Bold" color="#FFFFFF" />
-                  Générer la miniature
-                </Button>
+                <h3 className={cn(
+                  "text-sm font-bold mb-3",
+                  theme === "dark" ? "text-white" : "text-gray-900"
+                )}>
+                  Miniature
+                </h3>
+
+                {video.thumbnail ? (
+                  <div className="space-y-3">
+                    <div className="relative aspect-video rounded-lg overflow-hidden border border-gray-700">
+                      <img
+                        src={video.thumbnail.url}
+                        alt="Miniature"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <Button
+                      onClick={() => setShowThumbnailModal(true)}
+                      className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-500 hover:to-pink-500 rounded-xl font-medium transition-all text-sm"
+                    >
+                      <Image size={18} variant="Bold" color="#FFFFFF" />
+                      Modifier la miniature
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <div className={cn(
+                      "aspect-video rounded-lg border-2 border-dashed flex items-center justify-center",
+                      theme === "dark"
+                        ? "border-gray-700 bg-gray-900/30"
+                        : "border-gray-300 bg-gray-50"
+                    )}>
+                      <div className="text-center">
+                        <Image
+                          size={32}
+                          variant="Bulk"
+                          color={theme === "dark" ? "#4B5563" : "#9CA3AF"}
+                        />
+                        <p className={cn(
+                          "text-xs mt-2",
+                          theme === "dark" ? "text-gray-600" : "text-gray-400"
+                        )}>
+                          Aucune miniature
+                        </p>
+                      </div>
+                    </div>
+                    <Button
+                      onClick={() => setShowThumbnailModal(true)}
+                      className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-500 hover:to-pink-500 rounded-xl font-medium transition-all text-sm shadow-lg shadow-purple-500/25"
+                    >
+                      <Image size={18} variant="Bold" color="#FFFFFF" />
+                      Créer une miniature
+                    </Button>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -530,8 +586,11 @@ const VideoDetailsPage: React.FC = () => {
       <ThumbnailGeneratorModal
         isOpen={showThumbnailModal}
         onClose={() => setShowThumbnailModal(false)}
+        videoId={video.id}
         videoTitle={video.title}
         segments={video.segments}
+        currentThumbnail={video.thumbnail}
+        onThumbnailChange={() => refetch()}
       />
     </div>
   );

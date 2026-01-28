@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { CloseCircle, ArrowRight2, ArrowLeft2 } from 'iconsax-react';
+import { useMutation } from '@apollo/client';
+import { CloseCircle, ArrowRight2, ArrowLeft2, Trash, TickCircle } from 'iconsax-react';
 import Button from '../actions/button';
 import ImageSourcePanel from '../thumbnail/ImageSourcePanel';
 import BackgroundImageSlot from '../thumbnail/BackgroundImageSlot';
@@ -8,9 +9,11 @@ import InteractiveCanvas from '../thumbnail/InteractiveCanvas';
 import LayerItem from '../thumbnail/LayerItem';
 import ElementPropertiesPanel from '../thumbnail/ElementPropertiesPanel';
 import { DEFAULT_PRESET } from '../../lib/thumbnail-presets';
-import { exportThumbnail, generateThumbnailFilename } from '../../lib/thumbnail-export';
+import { exportThumbnail, generateThumbnailFilename, generateThumbnailBase64 } from '../../lib/thumbnail-export';
+import { UPLOAD_VIDEO_THUMBNAIL, DELETE_VIDEO_THUMBNAIL } from '../../lib/graphql/mutations';
 import type { CanvasElement, TextElement, ImageElement } from '../../types/thumbnail';
 import { useTheme } from '../../context/theme-context';
+import { useToast } from '../../context/toast-context';
 import { cn } from '../../lib/utils';
 
 interface Character {
@@ -34,27 +37,46 @@ interface VideoSegment {
   extract?: Extract;
 }
 
+interface VideoThumbnail {
+  url: string;
+  fileId: string;
+  name?: string;
+  createdAt: string;
+}
+
 interface ThumbnailGeneratorModalProps {
   isOpen: boolean;
   onClose: () => void;
+  videoId: string;
   videoTitle: string;
   segments: VideoSegment[];
+  currentThumbnail?: VideoThumbnail | null;
+  onThumbnailChange?: () => void;
 }
 
 const ThumbnailGeneratorModal: React.FC<ThumbnailGeneratorModalProps> = ({
   isOpen,
   onClose,
+  videoId,
   videoTitle,
   segments,
+  currentThumbnail,
+  onThumbnailChange,
 }) => {
   const { theme } = useTheme();
+  const toast = useToast();
   const [preset] = useState(DEFAULT_PRESET);
   const [backgroundImage, setBackgroundImage] = useState<string | null>(null);
   const [elements, setElements] = useState<CanvasElement[]>([]);
   const [selectedElementId, setSelectedElementId] = useState<string | null>(null);
   const [isExporting, setIsExporting] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [activeTool, setActiveTool] = useState<ToolType>('select');
   const [isRightPanelOpen, setIsRightPanelOpen] = useState(true);
+
+  // Mutations
+  const [uploadThumbnail] = useMutation(UPLOAD_VIDEO_THUMBNAIL);
+  const [deleteThumbnail] = useMutation(DELETE_VIDEO_THUMBNAIL);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -227,7 +249,7 @@ const ThumbnailGeneratorModal: React.FC<ThumbnailGeneratorModalProps> = ({
     }));
   };
 
-  // Export thumbnail
+  // Export thumbnail (download)
   const handleExport = async () => {
     setIsExporting(true);
     try {
@@ -240,11 +262,65 @@ const ThumbnailGeneratorModal: React.FC<ThumbnailGeneratorModalProps> = ({
         elements,
         filename,
       });
+      toast.success('Téléchargement', 'Miniature téléchargée avec succès');
     } catch (error) {
       console.error('Erreur lors de l\'export:', error);
-      alert('Erreur lors de l\'export de la miniature.');
+      toast.error('Erreur', 'Erreur lors du téléchargement de la miniature');
     } finally {
       setIsExporting(false);
+    }
+  };
+
+  // Save thumbnail to server (ImageKit)
+  const handleSave = async () => {
+    if (elements.length === 0 && !backgroundImage) {
+      toast.error('Erreur', 'Ajoutez au moins un élément ou une image de fond');
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const imageBase64 = await generateThumbnailBase64({
+        width: preset.canvasSize.width,
+        height: preset.canvasSize.height,
+        backgroundColor: preset.backgroundColor,
+        backgroundImage,
+        elements,
+      });
+
+      const fileName = generateThumbnailFilename(videoTitle);
+
+      await uploadThumbnail({
+        variables: {
+          videoId,
+          imageBase64,
+          fileName,
+        },
+      });
+
+      toast.success('Sauvegardé', 'Miniature sauvegardée avec succès');
+      onThumbnailChange?.();
+    } catch (error) {
+      console.error('Erreur lors de la sauvegarde:', error);
+      toast.error('Erreur', 'Erreur lors de la sauvegarde de la miniature');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // Delete thumbnail from server
+  const handleDeleteThumbnail = async () => {
+    if (!currentThumbnail) return;
+
+    try {
+      await deleteThumbnail({
+        variables: { videoId },
+      });
+      toast.success('Supprimé', 'Miniature supprimée avec succès');
+      onThumbnailChange?.();
+    } catch (error) {
+      console.error('Erreur lors de la suppression:', error);
+      toast.error('Erreur', 'Erreur lors de la suppression de la miniature');
     }
   };
 
@@ -450,7 +526,27 @@ const ThumbnailGeneratorModal: React.FC<ThumbnailGeneratorModalProps> = ({
             "text-sm flex items-center gap-4",
             theme === "dark" ? "text-gray-500" : "text-gray-500"
           )}>
-            <span>{elements.length} calque{elements.length !== 1 ? 's' : ''}</span>
+            {/* Current thumbnail status */}
+            {currentThumbnail ? (
+              <div className="flex items-center gap-2">
+                <TickCircle size={16} variant="Bold" color="#22C55E" />
+                <span className="text-green-500">Miniature sauvegardée</span>
+                <button
+                  onClick={handleDeleteThumbnail}
+                  className={cn(
+                    "p-1 rounded transition-colors",
+                    theme === "dark"
+                      ? "hover:bg-red-500/20 text-red-400"
+                      : "hover:bg-red-100 text-red-500"
+                  )}
+                  title="Supprimer la miniature"
+                >
+                  <Trash size={14} color="#EF4444" />
+                </button>
+              </div>
+            ) : (
+              <span>{elements.length} calque{elements.length !== 1 ? 's' : ''}</span>
+            )}
             <span>•</span>
             <span className="flex items-center gap-1">
               <kbd className={cn(
@@ -485,9 +581,21 @@ const ThumbnailGeneratorModal: React.FC<ThumbnailGeneratorModalProps> = ({
             <Button
               onClick={handleExport}
               disabled={isExporting}
-              className="px-5 py-2 bg-gradient-to-r from-purple-500 to-cyan-500 text-white hover:from-purple-400 hover:to-cyan-400 rounded-lg font-medium shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              className={cn(
+                "px-4 py-2 rounded-lg font-medium transition-colors",
+                theme === "dark"
+                  ? "bg-gray-800 text-gray-300 hover:bg-gray-700"
+                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+              )}
             >
               {isExporting ? 'Export...' : 'Exporter PNG'}
+            </Button>
+            <Button
+              onClick={handleSave}
+              disabled={isSaving || (elements.length === 0 && !backgroundImage)}
+              className="px-5 py-2 bg-gradient-to-r from-purple-500 to-cyan-500 text-white hover:from-purple-400 hover:to-cyan-400 rounded-lg font-medium shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isSaving ? 'Sauvegarde...' : currentThumbnail ? 'Mettre à jour' : 'Sauvegarder'}
             </Button>
           </div>
         </div>
